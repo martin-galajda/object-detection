@@ -1,0 +1,25 @@
+*.csv
+*.tsv
+
+.DS_STORE
+.vscode
+.idea
+
+*.hdf5
+*.h5
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+*db.data
+*db.images.data
+*db.labels.data
+
+play/
+
+gdown.pl
