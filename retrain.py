@@ -27,35 +27,36 @@ files_in_models = [file for file in files_in_models if re.match('.*hdf5.*', file
 file_for_latest_model = sorted(files_in_models)[-1]
 
 print("File for latest model %s" % file_for_latest_model)
+# Use pre-trained weights for Tensorflow backend
+weights_path = 'imagenet_models/densenet121_weights_tf.h5'
+
+# Test pretrained model
+model = densenet121.DenseNet(reduction=0.5, classes=1000, weights_path=weights_path)
+
+sgd = SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
+model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
+
+model.layers.pop()
+model.layers.pop()
+model.layers.pop()
+
+pooled = GlobalAveragePooling2D(name='global_avg_pooling_before_output')(model.layers[-1].output)
+dense = Dense(OpenImagesDataConstants.NUM_OF_CLASSES, name='retrained_fc6')(pooled)
+o_retrained = Activation('sigmoid', name='output_activation')(dense)
+
+retrained_model = Model(input=model.input, output=[o_retrained])
+
+retrained_model.compile(optimizer=sgd, loss='binary_crossentropy')
+
+# retrained_model.summary()
+
 
 if file_for_latest_model:
-  print("Loading model...")
-  with keras.utils.CustomObjectScope({ 'Scale': Scale }):
+  with keras.utils.CustomObjectScope({'Scale': Scale}):
+    print("Loading model weight...")
     model_checkpoint_path = os.path.join(os.path.dirname(__file__), 'checkpoints', file_for_latest_model)
-    retrained_model = keras.models.load_model(model_checkpoint_path)
-else:
-  # Use pre-trained weights for Tensorflow backend
-  weights_path = 'imagenet_models/densenet121_weights_tf.h5'
-
-  # Test pretrained model
-  model = densenet121.DenseNet(reduction=0.5, classes=1000, weights_path=weights_path)
-
-  sgd = SGD(lr=1e-2, decay=1e-6, momentum=0.9, nesterov=True)
-  model.compile(optimizer=sgd, loss='categorical_crossentropy', metrics=['accuracy'])
-
-  model.layers.pop()
-  model.layers.pop()
-  model.layers.pop()
-
-  pooled = GlobalAveragePooling2D(name='global_avg_pooling_before_output')(model.layers[-1].output)
-  dense = Dense(OpenImagesDataConstants.NUM_OF_CLASSES, name='retrained_fc6')(pooled)
-  o_retrained = Activation('sigmoid', name='output_activation')(dense)
-
-  retrained_model = Model(input=model.input, output=[o_retrained])
-
-  retrained_model.compile(optimizer=sgd, loss='binary_crossentropy')
-
-  retrained_model.summary()
+    retrained_model.load_weights(model_checkpoint_path)
+    print("Model loaded...")
 
 BATCH_SIZE = 30
 TOTAL_NUM_OF_SAMPLES = 5000000 # 1000000
@@ -73,22 +74,22 @@ openimages_generator = OpenImagesData(
 
 openimages_generator_val = OpenImagesData(
   batch_size = BATCH_SIZE,
-  len = NUM_OF_BATCHES_FOR_ONE_EPOCH_VAL,
+  len = 15,
   num_of_classes = OpenImagesDataConstants.NUM_OF_CLASSES,
-  total_number_of_samples=TOTAL_NUM_OF_SAMPLES,
+  total_number_of_samples=VALIDATION_NUM_OF_SAMPLES,
   table_name_for_image_urls='validation_images'
 )
 
 # checkpointer = ModelCheckpoint(filepath='./tmp/model.hdf5', verbose=1, save_best_only=False, period=0.01)
 
-checkpointer = ModelSaver(every_n_minutes=58)
-# time_checkpointer = ModelSaver(start=time(), )
-
+checkpointer = ModelSaver(every_n_minutes=118)
 
 retrained_model.fit_generator(
   openimages_generator,
   epochs=10,
   callbacks=[checkpointer],
+  use_multiprocessing=True,
+  workers=10,
   validation_data=openimages_generator_val,
-  validation_steps=int(VALIDATION_NUM_OF_SAMPLES / BATCH_SIZE / 5)
+  validation_steps=int(VALIDATION_NUM_OF_SAMPLES / BATCH_SIZE / 10)
 )

@@ -9,7 +9,6 @@ import cv2
 import numpy as np
 import os
 from  time import time as timer
-from itertools import islice
 from keras.utils import Sequence
 from time import sleep
 from collections import defaultdict
@@ -17,10 +16,10 @@ import sqlite3
 import data.openimages.constants as constants
 import aiosqlite
 
-PRINT_ENABLED = False
+PRINT_ENABLED = 1
 
-def debug_print(str):
-  if PRINT_ENABLED:
+def debug_print(str, level = 2):
+  if level <= PRINT_ENABLED:
     print(str)
 
 async def download_data_from_url(session, url):
@@ -57,7 +56,7 @@ async def async_download_images(urls_and_ids):
       futures += [download_image(image_url, image_original_id)]
 
     sql_values_for_db_update = await asyncio.gather(*futures)
-
+    debug_print("Downloaded %d images." % len(sql_values_for_db_update), level=1)
     return sql_values_for_db_update
   except Exception as e:
     print("Error downloading and saving images " + str(e))
@@ -122,37 +121,42 @@ def get_image_labels_from_images(downloaded_image_tuples):
 
 # def prefetch_train_data(batch_size, num_of_instances):
 def download_images_by_urls_and_ids(urls_and_ids):
+
   try:
+    loop = asyncio.get_event_loop()
+  except:
     policy = asyncio.get_event_loop_policy()
     policy.set_event_loop(policy.new_event_loop())
     loop = asyncio.get_event_loop()
+
+  try:
+    # policy = asyncio.get_event_loop_policy()
+    # policy.set_event_loop(policy.new_event_loop())
+    # loop = asyncio.get_event_loop()
     downloaded_image_content_and_id_tuples = loop.run_until_complete(async_download_images(urls_and_ids))
     positive_image_labels = get_image_labels_from_images(downloaded_image_content_and_id_tuples)
     return (downloaded_image_content_and_id_tuples, positive_image_labels)
   except Exception as e:
     print("Exception occured : %s!" % str(e), file = sys.stderr)
 
-def get_image_urls_from_db_sync(args):
-  image_indices, table_name = args
+def get_image_urls_from_db_sync(image_indices, table_name):
+  # policy = asyncio.get_event_loop_policy()
+  # policy.set_event_loop(policy.new_event_loop())
+  # loop = asyncio.get_event_loop()
+
   try:
-    debug_print("Getting image indices from table name %s " % table_name)
+    loop = asyncio.get_event_loop()
+  except:
     policy = asyncio.get_event_loop_policy()
     policy.set_event_loop(policy.new_event_loop())
     loop = asyncio.get_event_loop()
+
+  try:
+    debug_print("Getting image indices from table name %s " % table_name)
     image_urls_with_ids = loop.run_until_complete(get_image_urls_from_db(image_indices, table_name))
     return image_urls_with_ids
   except Exception as e:
-    print("Exception occured in get_image_urls_from_db_sync() : %s!" % str(e), file = sys.stderr)
-
-
-def init_worker(_queue):
-  ''' store the queue for later use '''
-  global global_queue
-  global_queue = _queue
-
-
-MAX_PENDING_WORKERS = 3
-PRELOADED_BATCHES_COUNT = 5
+    print("Exception occured in get_image_urls_from_db_sync() : %s!" % str(e), file=sys.stderr)
 
 
 class OpenImagesData(Sequence):
@@ -165,27 +169,17 @@ class OpenImagesData(Sequence):
   ):
     self.batch_size = batch_size
     self.table_name_for_image_urls = table_name_for_image_urls
-    self.last_img_idx = 0
-
-    self.queue = Queue()
-    self.workers_pool = Pool(initializer = init_worker, initargs = (self.queue, ), processes=10)
 
     self.x, self.y = None, None
 
     self.len = len
-    # self.file_train_image_urls = file_train_image_urls
     self.num_of_classes = num_of_classes
 
-    self.worker_tasks = []
-    self.worker_tasks_sampling = []
     self.images_bytes_for_next_batch = []
     self.positive_labels_for_next_batch = []
     self.total_number_of_samples = total_number_of_samples
 
     self.image_batches = []
-
-    [self.sample_batch() for _ in range(PRELOADED_BATCHES_COUNT)]
-    self.prefetch_new_images(1)
 
   def __len__(self):
     return self.len
@@ -193,142 +187,49 @@ class OpenImagesData(Sequence):
   def sample_batch(self):
     debug_print("Sampling batch (getting imgs from db)")
     indices = get_next_batch_indices(self.total_number_of_samples, self.batch_size)
+    results_sample_batch = get_image_urls_from_db_sync(indices, self.table_name_for_image_urls)
 
-    self.worker_tasks_sampling += [self.workers_pool.map_async(get_image_urls_from_db_sync, [(indices, self.table_name_for_image_urls)])]
-
-  def prefetch_new_images(self, times):
-    for _ in range(times):
-      self.ensure_next_batch_urls_are_loaded()
-      self.download_images()
+    self.image_batches += [results_sample_batch]
 
   def download_images(self):
-    debug_print("Going to download images using pool...")
-    num_of_batch_downloads = 10
-    batch_download_size = self.batch_size / num_of_batch_downloads
+    debug_print("Going to download images...")
+    batch_download_size = self.batch_size
 
     new_batch_images = self.image_batches[0]
     del self.image_batches[0]
 
     worker_data_payload = []
+
+    debug_print("new_batch_images length: %d." % len(new_batch_images))
     for img_from_batch in new_batch_images:
-     # id, url, original_image_id
       img_original_id = img_from_batch[2]
       img_url = img_from_batch[1]
 
       worker_data_payload += [(img_url, img_original_id)]
 
       if len(worker_data_payload) > 0 and ((len(worker_data_payload) % batch_download_size) == 0):
-        self.worker_tasks += [self.workers_pool.map_async(download_images_by_urls_and_ids, (worker_data_payload,))]
+        download_results = download_images_by_urls_and_ids(worker_data_payload)
+
+        debug_print("download_results shape: %s" % str(np.array(download_results).shape))
+        if download_results and download_results[0] and download_results[1]:
+          self.images_bytes_for_next_batch += download_results[0]
+          self.positive_labels_for_next_batch += download_results[1]
+
+          debug_print("self.images_bytes_for_next_batch shape: %s" % str(np.array(self.images_bytes_for_next_batch).shape))
+
         worker_data_payload = []
 
-    # with open(self.file_train_image_urls) as tsv_file:
-    #   lines = []
-    #   slice = islice(tsv_file, self.last_img_idx, self.last_img_idx + (num_of_batch_downloads * batch_download_size))
-    #
-    #   for line in slice:
-    #
-    #     lines += [line]
-    #
-    #     if len(lines) > 0 and len(lines) % batch_download_size == 0:
-    #       lines = []
-    #
-    #       self.worker_tasks += [self.workers_pool.map_async(download_images_by_urls_and_ids, (lines,))]
-    #
-    #   self.last_img_idx += int(num_of_batch_downloads * batch_download_size)
-    #
-    #   if self.last_img_idx >= 1000000:
-    #     self.last_img_idx = 0
 
-  def ensure_next_batch_urls_are_loaded(self):
-    while len(self.image_batches) == 0:
-      if len(self.worker_tasks_sampling) == 0:
-        self.sample_batch()
-
-      some_worker_was_ready = False
-
-      worker_indices_finished = []
-
-      for idx, worker_task in enumerate(self.worker_tasks_sampling):
-        if worker_task.ready():
-          worker_results = worker_task.get()[0]
-          debug_print("worker_tasks_sampling result shape: ")
-          debug_print(np.array(worker_results).shape)
-          self.image_batches += [worker_results]
-          some_worker_was_ready = True
-          worker_indices_finished += [idx]
-
-
-      self.worker_tasks_sampling = \
-        [
-          worker_task
-          for worker_task_idx, worker_task
-          in enumerate(self.worker_tasks_sampling)
-          if worker_task_idx not in worker_indices_finished
-        ]
-
-      if not some_worker_was_ready:
-        debug_print("Not a single worker for sample batch ready... sleeping")
-        sleep(3)
-        continue
-
-
-  def ensure_next_batch_is_loaded(self):
-    self.ensure_next_batch_urls_are_loaded()
-
-    while len(self.images_bytes_for_next_batch) < self.batch_size:
-      if len(self.worker_tasks) == 0:
-        self.prefetch_new_images(1)
-
-      some_worker_was_ready = False
-
-      worker_indices_finished = []
-
-      for idx, worker_task in enumerate(self.worker_tasks):
-        if worker_task.ready():
-          worker_indices_finished += [idx]
-          worker_results = worker_task.get()
-          if not worker_results or not worker_results[0]:
-            continue
-          worker_results = worker_results[0]
-
-          debug_print("worker result shape: ")
-          debug_print(np.array(worker_results).shape)
-          self.images_bytes_for_next_batch += worker_results[0]
-          self.positive_labels_for_next_batch += worker_results[1]
-
-          debug_print("len(self.images_for_next_batch): " + str(len(self.images_bytes_for_next_batch)))
-          debug_print("len(self.positive_labels_for_next_batch): " + str(len(self.positive_labels_for_next_batch)))
-
-          some_worker_was_ready = True
-
-      self.worker_tasks = \
-        [
-          worker_task
-           for worker_task_idx, worker_task
-           in enumerate(self.worker_tasks)
-           if worker_task_idx not in worker_indices_finished
-        ]
-
-
-      if not some_worker_was_ready:
-        debug_print("Not a single worker ready... sleeping")
-        sleep(3)
-        continue
-
-      if len(self.worker_tasks) < 3:
-        self.prefetch_new_images(3)
+  def ensure_next_batch_is_loaded(self, number_of_batches = 1):
+    while len(self.images_bytes_for_next_batch) < (self.batch_size * number_of_batches):
+      self.sample_batch()
+      self.download_images()
 
 
   def __getitem__(self, idx):
-    self.ensure_next_batch_is_loaded()
-
-    # run worker tasks to get one more batch (as we are processing one now)
-    self.sample_batch()
-    self.prefetch_new_images(1)
-
-    if len(self.images_bytes_for_next_batch) <= (self.batch_size * 5):
+    if len(self.images_bytes_for_next_batch) <= (self.batch_size * 3):
       debug_print("__getitem__ going to execute new download image")
-      self.prefetch_new_images(1)
+      self.ensure_next_batch_is_loaded(3)
       debug_print("__getitem__ after executing new download image")
 
     batch_y = []
@@ -349,12 +250,8 @@ class OpenImagesData(Sequence):
     del self.images_bytes_for_next_batch[:self.batch_size]
     del self.positive_labels_for_next_batch[:self.batch_size]
 
+    debug_print("self.images_bytes_for_next_batch shape: %s" % str(np.array(self.images_bytes_for_next_batch).shape), level = 1)
     print("batch_x shape: " + str(batch_x.shape))
     print("batch_y shape: " + str(batch_y.shape))
 
     return batch_x, batch_y
-
-
-  def __del__(self):
-    self.workers_pool.close()
-    self.workers_pool.join()
