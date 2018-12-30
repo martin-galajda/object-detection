@@ -39,7 +39,7 @@ def setup_labels_db():
   conn.commit()
 
 def insert_labels_into_db(labels):
-  conn = sqlite3.connect(DB_PATH)
+  conn = sqlite3.connect(DB_PATH, timeout=1000)
   cursor = conn.cursor()
 
   cursor.executemany("""
@@ -50,6 +50,20 @@ def insert_labels_into_db(labels):
   print("Inserted %d labels into db." % cursor.rowcount)
 
   conn.commit()
+
+
+def delete_all_image_labels_from_db():
+  conn = sqlite3.connect(DB_PATH, timeout=1000)
+  cursor = conn.cursor()
+
+  cursor.executescript("""
+    DELETE FROM image_labels;
+  """)
+
+  # print("Inserted %d image labels into db." % cursor.rowcount)
+
+  conn.commit()
+
 
 def insert_image_labels_into_db(image_labels):
   conn = sqlite3.connect(DB_PATH)
@@ -66,7 +80,7 @@ def insert_image_labels_into_db(image_labels):
 
 
 def get_labels_by_original_ids(original_ids):
-  conn = sqlite3.connect(DB_PATH)
+  conn = sqlite3.connect(DB_PATH, timeout=1000)
   cursor = conn.cursor()
 
   image_ids_placeholders = ','.join(['?' for _ in range(len(original_ids))])
@@ -155,13 +169,13 @@ def import_image_labels_to_db(path_to_image_labels_file):
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
   parser.add_argument('--table', type=str, default='labels', required=False,
-              help='Table to build (labels|image_labels).')
+    help='Table to build (labels|image_labels).')
 
   parser.add_argument('--path_to_image_labels_file',
-                      type=str,
-                      default=csv_file_with_image_labels,
-                      required=False,
-                      help='Path to file containing image labels.')
+    type=str,
+    default=csv_file_with_image_labels,
+    required=False,
+    help='Path to file containing image labels.')
 
   args = parser.parse_args()
 
@@ -170,4 +184,5 @@ if __name__ == '__main__':
     import_label_set_to_db()
   elif args.table == 'image_labels':
     path_to_image_labels_file = args.path_to_image_labels_file
+    delete_all_image_labels_from_db()
     import_image_labels_to_db(path_to_image_labels_file)

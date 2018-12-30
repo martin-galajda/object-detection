@@ -7,12 +7,14 @@ import re
 timestamp_of_training = re.sub(' ','_', str(datetime.utcnow()))
 
 class ModelSaver(Callback):
-    def __init__(self, after_every_batch = None, every_n_minutes = None):
+    def __init__(self, after_every_batch = None, every_n_minutes = None, directory = 'checkpoints', model = 'model'):
         self.save_every_batch = after_every_batch
         self.every_n_minutes = every_n_minutes
         self.start = timer()
         self.batch = 0
         self.last_minute_saved = 0
+        self.directory = directory + "/" + model
+        os.makedirs(self.directory, exist_ok=True)
 
         if self.save_every_batch:
           print("ModelSaver.__init()__ ---> going to save model every %d batch processed." % self.save_every_batch)
@@ -26,7 +28,7 @@ class ModelSaver(Callback):
       elif self.every_n_minutes:
         print("Saving model after %s." % suffix)
 
-      path_to_check_points = os.path.join(os.path.dirname(__file__), '..', 'checkpoints')
+      path_to_check_points = os.path.join(os.path.dirname(__file__), '..', self.directory)
 
       if not os.path.isdir(path_to_check_points):
         os.makedirs(path_to_check_points)

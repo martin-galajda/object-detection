@@ -21,5 +21,11 @@ __pycache__/
 *db.labels.data
 
 play/
-
+venv/
+tf-model
+small_openimages
+imagenet_models
+dict
+checkpoints
+checkpoints_2
 gdown.pl

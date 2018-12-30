@@ -56,7 +56,7 @@ async def async_download_images(urls_and_ids):
       futures += [download_image(image_url, image_original_id)]
 
     sql_values_for_db_update = await asyncio.gather(*futures)
-    debug_print("Downloaded %d images." % len(sql_values_for_db_update), level=1)
+    debug_print("Downloaded %d images." % len(sql_values_for_db_update), level = 2)
     return sql_values_for_db_update
   except Exception as e:
     print("Error downloading and saving images " + str(e))
@@ -79,10 +79,8 @@ def get_next_batch_indices(total_number_of_samples, batch_size):
   return list(map(lambda x: int(x), np.random.uniform(0, total_number_of_samples, batch_size)))
 
 async def get_image_urls_from_db(image_indices, table_name):
-  IMAGES_DB_PATH = './data/openimages/out/db.images.data'
-
   try:
-    async with aiosqlite.connect(IMAGES_DB_PATH, timeout=1000) as db:
+    async with aiosqlite.connect(constants.Constants.IMAGES_DB_PATH, timeout=1000) as db:
       image_ids_placeholder = ','.join(['?' for _ in range(len(image_indices))])
       cursor = await db.cursor()
       await cursor.execute("""
@@ -250,8 +248,11 @@ class OpenImagesData(Sequence):
     del self.images_bytes_for_next_batch[:self.batch_size]
     del self.positive_labels_for_next_batch[:self.batch_size]
 
-    debug_print("self.images_bytes_for_next_batch shape: %s" % str(np.array(self.images_bytes_for_next_batch).shape), level = 1)
-    print("batch_x shape: " + str(batch_x.shape))
-    print("batch_y shape: " + str(batch_y.shape))
+    debug_print("self.images_bytes_for_next_batch shape: %s" % str(np.array(self.images_bytes_for_next_batch).shape))
+    # print("batch_x shape: " + str(batch_x.shape))
+    # print("batch_y shape: " + str(batch_y.shape))
+    print("%s one in batch_y " % (str(len(np.where(batch_y == 1)[0])),))
+    print("batch y length %s" %str(len(batch_y)))
+    print(batch_y)
 
     return batch_x, batch_y
