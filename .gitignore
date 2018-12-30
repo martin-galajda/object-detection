@@ -28,4 +28,6 @@ imagenet_models
 dict
 checkpoints
 checkpoints_2
+
+data/openimages/out
 gdown.pl

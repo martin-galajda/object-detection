@@ -17,10 +17,6 @@ from multiprocessing import Pool, Queue
 from time import sleep
 from itertools import islice
 import sqlite3
-import  gc
-import zlib
-import codecs
-
 
 # DB_FILE_PATH = './data/openimages/out/db2.data'
 DB_FILE_PATH = '/storage/plzen1/home/marneyko/datasets/out/db.data'
@@ -28,8 +24,9 @@ DB_FILE_PATH = '/storage/plzen1/home/marneyko/datasets/out/db.data'
 processed = 0
 
 class Enums:
-  NOTIFICATION_TYPE_DOWNLOADED = 0
-  NOTIFICATION_TYPE_SAVED_TO_DB = 1
+    NOTIFICATION_TYPE_DOWNLOADED = 0
+    NOTIFICATION_TYPE_SAVED_TO_DB = 1
+
 
 def adapt_array(arr):
   """
@@ -59,14 +56,14 @@ aiosqlite.register_adapter(np.ndarray, adapt_array)
 # Converts TEXT to np.array when selecting
 aiosqlite.register_converter("BLOB", convert_array)
 
-async def save_image_to_db(image_id, image_pixels_array):
+async def save_image_to_db(image_id, image_pixels_array, table_name):
   try:
     async with aiosqlite.connect(DB_FILE_PATH, timeout = 1000, detect_types=sqlite3.PARSE_DECLTYPES) as db:
       await db.execute("""
-        UPDATE images
+        UPDATE %s
         SET image_data = ?
         WHERE id = ?;
-      """, (image_pixels_array, image_id))
+      """, (table_name, image_pixels_array, image_id))
 
       await db.commit()
 
