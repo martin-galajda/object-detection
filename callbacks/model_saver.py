@@ -7,13 +7,13 @@ import re
 timestamp_of_training = re.sub(' ','_', str(datetime.utcnow()))
 
 class ModelSaver(Callback):
-    def __init__(self, after_every_batch = None, every_n_minutes = None, directory = 'checkpoints', model = 'model'):
+    def __init__(self, after_every_batch = None, every_n_minutes = None, model = 'model'):
         self.save_every_batch = after_every_batch
         self.every_n_minutes = every_n_minutes
         self.start = timer()
         self.batch = 0
         self.last_minute_saved = 0
-        self.directory = directory + "/" + model
+        self.directory = model
         os.makedirs(self.directory, exist_ok=True)
 
         if self.save_every_batch:

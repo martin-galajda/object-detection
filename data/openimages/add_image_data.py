@@ -7,6 +7,7 @@ import numpy as np
 import sys
 import sqlite3
 from utils.np_array_db_converters import adapt_array, convert_array
+from timeit import default_timer as timer
 
 # Converts numpy array to binary compressed version
 aiosqlite.register_adapter(np.ndarray, adapt_array)
@@ -108,6 +109,11 @@ async def main(args):
   processed_count = 0
   db_path = args.path_to_images_db
   table_name = args.table_name_for_images
+  max_hours_to_run = args.max_hours_to_run
+
+  max_seconds_to_run = max_hours_to_run * 60 * 60
+
+  import_start_timestamp = timer()
 
   await assert_image_bytes_col_exists(db_path, table_name)
   task_list = []
@@ -123,7 +129,10 @@ async def main(args):
       processed_count += len(task_list)
       task_list = []
 
-
+    now = timer()
+    if now - import_start_timestamp > max_seconds_to_run:
+      print(f'Already took {now - import_start_timestamp} seconds to process, exiting...')
+      break
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
@@ -157,6 +166,13 @@ if __name__ == '__main__':
       default=16,
       required=False,
       help='Number of images to process in parallel.')
+
+  # to avoid locking databasee ...
+  parser.add_argument('--max_hours_to_run',
+      type=int,
+      default=23,
+      required=False,
+      help='Maximum number of hours to perform import.')
 
   args = parser.parse_args()
 

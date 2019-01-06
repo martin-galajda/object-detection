@@ -6,7 +6,7 @@ from keras.layers import Activation, GlobalAveragePooling2D, Dense
 from keras.models import Model
 from densenetpretrained.custom_layers import Scale
 
-from data.openimages.batch_generator import OpenImagesData
+from data.openimages.batch_generator_db import OpenImagesData
 from data.openimages.constants import Constants as OpenImagesDataConstants
 from callbacks.model_saver import ModelSaver
 
@@ -110,23 +110,31 @@ def perform_retraining(args):
 
   BATCH_SIZE = args.batch_size
   TOTAL_NUM_OF_SAMPLES = args.images_num  # 1000000
-  VALIDATION_NUM_OF_SAMPLES = args.validation_images_num  # 41620
+
+  VALIDATION_DATA_USE_PERCENTAGE = args.validation_data_use_percentage
+  VALIDATION_NUM_OF_SAMPLES = args.validation_images_num * VALIDATION_DATA_USE_PERCENTAGE  # 41620
 
   NUM_OF_BATCHES_FOR_ONE_EPOCH = int(TOTAL_NUM_OF_SAMPLES / BATCH_SIZE)
   NUM_OF_BATCHES_FOR_ONE_EPOCH_VAL = int(VALIDATION_NUM_OF_SAMPLES / BATCH_SIZE)
+
+  NUM_OF_WORKERS = args.workers
 
   openimages_generator = OpenImagesData(
     batch_size=BATCH_SIZE,
     len=int(NUM_OF_BATCHES_FOR_ONE_EPOCH),
     num_of_classes=OpenImagesDataConstants.NUM_OF_CLASSES,
+    db_images_path=args.db_images_path,
+    db_image_labels_path=args.db_image_labels_path,
     total_number_of_samples=TOTAL_NUM_OF_SAMPLES
   )
 
   openimages_generator_val = OpenImagesData(
     batch_size=BATCH_SIZE,
-    len=15,
+    len=int(NUM_OF_BATCHES_FOR_ONE_EPOCH_VAL),
     num_of_classes=OpenImagesDataConstants.NUM_OF_CLASSES,
     total_number_of_samples=VALIDATION_NUM_OF_SAMPLES,
+    db_images_path=args.db_images_path,
+    db_image_labels_path=args.db_image_labels_path,
     table_name_for_image_urls='validation_images'
   )
 
@@ -135,14 +143,12 @@ def perform_retraining(args):
 
   retrained_model.fit_generator(
     openimages_generator,
-    epochs=10000,
+    epochs=30,
     callbacks=[checkpointer],
     use_multiprocessing=True,
-    workers=10,
-    validation_data=openimages_generator_val,
-    validation_steps=int(VALIDATION_NUM_OF_SAMPLES / BATCH_SIZE / 10)
+    workers=NUM_OF_WORKERS,
+    # validation_data=openimages_generator_val
   )
-
 
 def main():
   from tensorflow.python.client import device_lib
@@ -160,6 +166,18 @@ def main():
 
   parser.add_argument('--batch_size', type=int, default=30,
                       help='Batch size for model.')
+
+  parser.add_argument('--validation_data_use_percentage', type=float, default=0.0001,
+                      help='Percentage of validation data to use.')
+
+  parser.add_argument('--workers', type=int, default=10,
+                      help='Number of workers to use.')
+
+  parser.add_argument('--db_images_path', type=str, default=OpenImagesDataConstants.IMAGES_DB_PATH,
+                      help='Path to database containing images.')
+
+  parser.add_argument('--db_image_labels_path', type=str, default=OpenImagesDataConstants.IMAGE_LABELS_DB_PATH,
+                      help='Path to database containing labels.')
 
   args = parser.parse_args()
 

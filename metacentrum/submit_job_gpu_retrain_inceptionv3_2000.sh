@@ -14,7 +14,9 @@ source ./venv/bin/activate
 
 module load cuda-9.0
 
-export CUDA_VISIBLE_DEVICES=0,1,2,3
+echo "Echoing cuda visible devices"
+echo $CUDA_VISIBLE_DEVICES
+echo "Donee echoing cuda visible devices"
 
 export LD_LIBRARY_PATH=./tmp-cudnn/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH
 
@@ -22,4 +24,4 @@ cd /storage/brno3-cerit/home/marneyko/object-detection &&
     module load cuda-9.0 python36-modules-gcc python-3.6.2-gcc &&
     source ./venv/bin/activate &&
     export LD_LIBRARY_PATH=./tmp-cudnn/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH &&
-    python retrain.py --model=inceptionV3 --images_num=2000 --validation_images_num=2000
+    python retrain.py --model=inceptionV3 --images_num=2000 --batch_size=32

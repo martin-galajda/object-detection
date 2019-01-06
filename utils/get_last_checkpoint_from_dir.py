@@ -5,6 +5,9 @@ REGEX_EXTRACT_DATE_AND_MINUTES = r'(.*)_model_batch_(\d+)_minutes.hdf5$'
 
 
 def get_last_checkpoint_from_dir(dir):
+  if not os.path.isdir(dir):
+    return None
+
   dir_files = os.listdir(dir)
 
   dir_files_by_date = {}
