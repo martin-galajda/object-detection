@@ -137,7 +137,7 @@ class OpenImagesData(Sequence):
       batch_images_from_db = self.sample_batch()
       self.prepare_next_batch(batch_images_from_db)
 
-      print(f'Length of image bytes for next  batch: {len(self.images_bytes_for_next_batch)}')
+      print(f'Length of image bytes for next batch: {len(self.images_bytes_for_next_batch)}')
 
     if len(self.images_bytes_for_next_batch) != len(self.positive_labels_for_next_batch):
       raise RuntimeError(f'Number of image bytes prepared != positive labels for next batch.' +
@@ -166,9 +166,9 @@ class OpenImagesData(Sequence):
     del self.images_bytes_for_next_batch[:self.batch_size]
     del self.positive_labels_for_next_batch[:self.batch_size]
 
-    print("%s one in batch_y " % (str(len(np.where(batch_y == 1)[0])),))
-    print("batch y length %s" %str(len(batch_y)))
-    print("%s --> ones" % (str(np.where(batch_y == 1)[1])))
+    # print("%s one in batch_y " % (str(len(np.where(batch_y == 1)[0])),))
+    # print("batch y length %s" %str(len(batch_y)))
+    # print("%s --> ones" % (str(np.where(batch_y == 1)[1])))
     # print(batch_x)
 
     return batch_x, batch_y

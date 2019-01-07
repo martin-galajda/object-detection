@@ -11,6 +11,7 @@ from data.openimages.constants import Constants as OpenImagesDataConstants
 from callbacks.model_saver import ModelSaver
 
 from utils.get_last_checkpoint_from_dir import get_last_checkpoint_from_dir
+from utils.copy_file_to_scratch import copy_file_to_scratch
 
 import keras
 import os
@@ -73,7 +74,6 @@ def load_inceptionV3_model(args):
     pooling=None
   )
 
-  model.summary()
   pooled = GlobalAveragePooling2D(name='global_avg_pooling_before_output')(model.layers[-1].output)
   dense = Dense(OpenImagesDataConstants.NUM_OF_CLASSES, name='retrained_final_dense')(pooled)
   o_retrained = Activation('sigmoid', name='output_activation')(dense)
@@ -104,6 +104,13 @@ def load_model(args):
 
 
 def perform_retraining(args):
+  db_images_path = args.db_images_path
+  db_image_labels_path = args.db_image_labels_path
+
+  if args.copy_db_to_scratch:
+    db_images_path = copy_file_to_scratch(db_images_path)
+    db_image_labels_path = copy_file_to_scratch(db_image_labels_path)
+
   retrained_model = load_model(args)
 
   checkpoint_dir = './checkpoints/%s/%s' % (args.model, str(args.images_num))
@@ -119,12 +126,13 @@ def perform_retraining(args):
 
   NUM_OF_WORKERS = args.workers
 
+
   openimages_generator = OpenImagesData(
     batch_size=BATCH_SIZE,
     len=int(NUM_OF_BATCHES_FOR_ONE_EPOCH),
     num_of_classes=OpenImagesDataConstants.NUM_OF_CLASSES,
-    db_images_path=args.db_images_path,
-    db_image_labels_path=args.db_image_labels_path,
+    db_images_path=db_images_path,
+    db_image_labels_path=db_image_labels_path,
     total_number_of_samples=TOTAL_NUM_OF_SAMPLES
   )
 
@@ -133,8 +141,8 @@ def perform_retraining(args):
     len=int(NUM_OF_BATCHES_FOR_ONE_EPOCH_VAL),
     num_of_classes=OpenImagesDataConstants.NUM_OF_CLASSES,
     total_number_of_samples=VALIDATION_NUM_OF_SAMPLES,
-    db_images_path=args.db_images_path,
-    db_image_labels_path=args.db_image_labels_path,
+    db_images_path=db_images_path,
+    db_image_labels_path=db_image_labels_path,
     table_name_for_image_urls='validation_images'
   )
 
@@ -143,7 +151,7 @@ def perform_retraining(args):
 
   retrained_model.fit_generator(
     openimages_generator,
-    epochs=30,
+    epochs=args.epochs,
     callbacks=[checkpointer],
     use_multiprocessing=True,
     workers=NUM_OF_WORKERS,
@@ -178,6 +186,12 @@ def main():
 
   parser.add_argument('--db_image_labels_path', type=str, default=OpenImagesDataConstants.IMAGE_LABELS_DB_PATH,
                       help='Path to database containing labels.')
+
+  parser.add_argument('--epochs', type=int, default=100,
+                      help='Num of epochs to train for.')
+
+  parser.add_argument('--copy_db_to_scratch', type=bool, default=True,
+                      help='Flag to determine whether copy db files to scratch.')
 
   args = parser.parse_args()
 

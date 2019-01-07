@@ -10,6 +10,9 @@ def get_last_checkpoint_from_dir(dir):
 
   dir_files = os.listdir(dir)
 
+  if len(dir_files) == 0:
+    return None
+
   dir_files_by_date = {}
   dir_files_by_minutes = {}
 
@@ -30,6 +33,9 @@ def get_last_checkpoint_from_dir(dir):
 
   print(dir_files_by_date)
   sorted_dates = sorted(dir_files_by_date.keys())
+
+  if len(sorted_dates) < 1:
+    return None
   last_date = sorted_dates[-1]
 
   checkpoints_for_last_date_dict = dir_files_by_date[last_date]
