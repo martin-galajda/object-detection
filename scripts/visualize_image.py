@@ -5,6 +5,9 @@ import cv2
 import numpy as np
 import sqlite3
 from utils.np_array_db_converters import adapt_array, convert_array
+from timeit import default_timer as timer
+
+from data.openimages.constants import Constants
 
 # Converts numpy array to binary compressed version
 aiosqlite.register_adapter(np.ndarray, adapt_array)
@@ -15,6 +18,7 @@ sqlite3.register_converter("blob", convert_array)
 
 
 def get_positive_image_labels_from_db(original_image_ids, db_labels_path):
+  start = timer()
   original_image_ids_placeholder = ','.join(['?' for _ in range(len(original_image_ids))])
 
   db_image_labels_conn = sqlite3.connect(db_labels_path)
@@ -26,7 +30,12 @@ def get_positive_image_labels_from_db(original_image_ids, db_labels_path):
     WHERE original_image_id IN (%s) AND confidence > 0.0;
   """ % original_image_ids_placeholder, original_image_ids)
 
-  return cursor.fetchall()
+  labels = cursor.fetchall()
+
+  end = timer()
+  print(f'Took {end - start} seconds to fetch labels from db')
+
+  return labels
 
 
 
@@ -64,13 +73,13 @@ if __name__ == '__main__':
 
   parser.add_argument('--path_to_images_db',
     type=str,
-    default='./data/openimages/out/db.images.data',
+    default=Constants.IMAGES_DB_PATH,
     required=False,
     help='Path to file containing image metadata.')
 
   parser.add_argument('--path_to_labels_db',
     type=str,
-    default='./data/openimages/out/db.labels.data',
+    default=Constants.IMAGE_LABELS_DB_PATH,
     required=False,
     help='Path to file containing labels metadata.')
 

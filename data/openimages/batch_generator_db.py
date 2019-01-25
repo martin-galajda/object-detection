@@ -8,6 +8,8 @@ import sqlite3
 import data.openimages.constants as constants
 from utils.np_array_db_converters import adapt_array, convert_array
 from numpy.random import randint
+from utils.preprocess_image import preprocess_image_bytes
+import os
 
 # Converts numpy array to binary compressed version
 sqlite3.register_adapter(np.ndarray, adapt_array)
@@ -33,9 +35,12 @@ class DB:
     db_image_labels_conn = sqlite3.connect(self.db_image_labels_path, timeout=1000)
     cursor = db_image_labels_conn.cursor()
     cursor.execute("""
-      SELECT id, original_image_id, label_id
+      SELECT image_labels.id, image_labels.original_image_id, image_labels.label_id, labels.trainable_label_id
       FROM image_labels
-      WHERE original_image_id IN (%s) AND confidence = 1.0;
+      INNER JOIN labels ON labels.id = image_labels.label_id
+      WHERE original_image_id IN (%s)
+        AND confidence = 1.0
+        AND labels.trainable_label_id IS NOT NULL;
     """ % original_image_ids_placeholder, original_image_ids)
 
     return cursor.fetchall()
@@ -78,6 +83,8 @@ class OpenImagesData(Sequence):
     db_image_labels_path,
     table_name_for_image_urls = 'train_images'
   ):
+    self.seeded = False
+  
     self.batch_size = batch_size
     self.table_name_for_image_urls = table_name_for_image_urls
     self.db_images_path = db_images_path
@@ -110,7 +117,7 @@ class OpenImagesData(Sequence):
 
     original_image_id_to_positive_image_label_ids = defaultdict(list)
     for positive_image_label in positive_image_labels:
-      original_image_id_to_positive_image_label_ids[positive_image_label[1]] += [positive_image_label[2]]
+      original_image_id_to_positive_image_label_ids[positive_image_label[1]] += [positive_image_label[3]]
 
     positive_image_labels_for_downloaded_images = []
     for downloaded_image_id in original_image_ids:
@@ -120,7 +127,7 @@ class OpenImagesData(Sequence):
     return positive_image_labels_for_downloaded_images
 
   def sample_batch(self):
-    indices = get_next_batch_indices(self.total_number_of_samples, self.batch_size)
+    indices = get_next_batch_indices(self.total_number_of_samples, self.batch_size * 10)
     results_sample_batch = self.db.get_images(indices, self.table_name_for_image_urls)
 
     return results_sample_batch
@@ -141,10 +148,15 @@ class OpenImagesData(Sequence):
 
     if len(self.images_bytes_for_next_batch) != len(self.positive_labels_for_next_batch):
       raise RuntimeError(f'Number of image bytes prepared != positive labels for next batch.' +
-                         f'{images_bytes_for_next_batch} != {self.positive_labels_for_next_batch}')
+                         f'{self.images_bytes_for_next_batch} != {self.positive_labels_for_next_batch}')
 
 
   def __getitem__(self, idx):
+    if not self.seeded:
+      # as we use multiprocessing - we have to make randomness different in all processes
+      np.random.seed(int.from_bytes(os.urandom(4), byteorder='little'))
+      self.seeded = True
+
     if len(self.images_bytes_for_next_batch) <= (self.batch_size * 1):
       self.ensure_next_batch_is_loaded(1)
 
@@ -153,16 +165,17 @@ class OpenImagesData(Sequence):
     for idx, image_bytes in enumerate(self.images_bytes_for_next_batch[:self.batch_size]):
       if image_bytes is None or len(image_bytes) == 0:
         continue
-      batch_x += [image_bytes]
+      batch_x += [preprocess_image_bytes(image_bytes)]
 
       positive_labels_flags = self.positive_labels_for_next_batch[idx]
-      y_vector = [1 if i in positive_labels_flags else 0 for i in range(1, constants.Constants.NUM_OF_CLASSES + 1)]
+      y_vector = [1 if i in positive_labels_flags else 0 for i in range(1, constants.Constants.NUM_OF_TRAINABLE_CLASSES + 1)]
 
       batch_y += [y_vector]
 
 
     batch_x = np.array(batch_x)
     batch_y = np.array(batch_y)
+
     del self.images_bytes_for_next_batch[:self.batch_size]
     del self.positive_labels_for_next_batch[:self.batch_size]
 

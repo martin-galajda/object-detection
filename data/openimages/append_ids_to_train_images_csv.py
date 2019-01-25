@@ -4,12 +4,13 @@ from time import time as timer
 from itertools import islice
 import re
 import os
+from data.openimages.constants import Constants
 
 pending_executions = 0
 processed = 0
 
 DB_FILE_PATH = './data/openimages/out/db.data'
-PATH_TO_IMAGE_URLS_TSV = './data/openimages/open-images-dataset-train0.tsv'
+PATH_TO_IMAGE_URLS_TSV = f'{Constants.METADATA_FILES_DIR_PATH}/open-images-dataset-train0.tsv'
 
 process_rows_batch_size = 10000
 
