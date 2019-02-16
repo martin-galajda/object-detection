@@ -1,0 +1,27 @@
+{
+  "python.autoComplete.extraPaths": [
+    "venv/lib/python3.6",
+    "."
+  ],
+  "editor.tabSize": 4,
+  "editor.detectIndentation": false,
+  "cSpell.words": [
+    "keras",
+    "probs",
+    "optimizers",
+    "sqlite3",
+    "chkpoint"
+  ],
+  "terminal.integrated.shellArgs.windows": ["-ExecutionPolicy","Bypass","-NoLogo","-NoProfile","-NoExit", "-Command", "./set_python_path.sh"],
+  "python.envFile": "${workspaceRoot}/venv",
+  "python.pythonPath": "${workspaceRoot}/venv/bin/python",
+  "python.linting.flake8Enabled": true,
+  "python.linting.pylintEnabled": false,
+  "python.formatting.blackArgs": ["--line-length", "160"],
+  "[python]": {
+      "editor.formatOnSave": true,
+  },
+  "python.sortImports.path": "${workspaceRoot}/venv/bin/isort",
+  "python.linting.lintOnSave": true,
+//   "editor.codeActionsOnSave.source.organizeImports": "${workspaceRoot}/venv/bin/isort"
+}

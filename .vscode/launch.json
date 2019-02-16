@@ -1,0 +1,45 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: retrain.py",
+            "type": "python",
+            "request": "launch",
+            "stopOnEntry": false,
+            "pythonPath": "${config:python.pythonPath}",
+            "program": "${workspaceRoot}/retrain.py",
+            "cwd": "${workspaceRoot}",
+            "env": {},
+            "envFile": "${workspaceRoot}/venv",
+            "debugOptions": [
+                "WaitOnAbnormalExit",
+                "WaitOnNormalExit",
+                "RedirectOutput"
+            ],
+            "args" : [
+                "--images_num",
+                "100",
+                "--model",
+                "inceptionV3",
+                "--optimizer",
+                "adam",
+                "--workers",
+                "1",
+                "--copy_db_to_scratch",
+                "f",
+                "--save_checkpoint_every_n_minutes",
+                "3",
+                "--use_multitarget_learning",
+                "f",
+                "--continue_from_last_checkpoint",
+                "f",
+                "--validation_data_use_percentage",
+                "0.001",
+                "--unfreeze_top_k_layers",
+                "1",
+                "--use_multiprocessing",
+                "f"
+            ]
+        }
+    ]
+}
