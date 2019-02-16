@@ -23,5 +23,19 @@
   },
   "python.sortImports.path": "${workspaceRoot}/venv/bin/isort",
   "python.linting.lintOnSave": true,
+  "files.exclude":{
+      "**/.git": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/CVS": true,
+      "**/.DS_Store": true,
+      "**/.ipynb_checkpoints": true,
+      "**/.idea": true,
+      "**/__pycache__": true,
+      "**/tsv_files": true,
+      "**/venv": true,
+      "**/tf-model": true,
+      "**/downloads": true,
+  }
 //   "editor.codeActionsOnSave.source.organizeImports": "${workspaceRoot}/venv/bin/isort"
 }

@@ -2,7 +2,6 @@
 *.tsv
 
 .DS_STORE
-.vscode
 .idea
 
 *.hdf5
@@ -32,7 +31,14 @@ dict
 checkpoints
 checkpoints_2
 
-data/openimages/out
+data/openimages
 gdown.pl
 
 models/yolov2/model_storage
+tensorboard-logs
+
+.vscode/last.sql
+./downloads
+.ipynb_checkpoints
+downloads
+old_useful
