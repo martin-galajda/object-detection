@@ -3,6 +3,7 @@ import sqlite3
 import aiosqlite
 from utils.np_array_db_converters import adapt_array, convert_array
 import numpy as np
+from collections import defaultdict
 
 # Converts numpy array to binary compressed version
 aiosqlite.register_adapter(np.ndarray, adapt_array)
@@ -94,7 +95,6 @@ async def async_save_image_boxes_to_db(image_boxes_data, db_path, table_name):
       await db_conn.commit()
 
 
-
 async def async_get_image_by_original_id(*, db_path: str, table_name_images: str, original_image_id: str):
   async with aiosqlite.connect(db_path, timeout=1000, detect_types=sqlite3.PARSE_DECLTYPES) as db_conn:
     async with db_conn.cursor() as cursor:
@@ -120,3 +120,52 @@ async def async_get_label_by_original_id(*, db_path: str, table_name_labels: str
       db_label = await cursor.fetchone()
       await db_conn.commit()
       return db_label
+
+async def async_get_images_by_ids(*, db_path: str, table_name_images: str, image_ids: list):
+  async with aiosqlite.connect(db_path, timeout=1000, detect_types=sqlite3.PARSE_DECLTYPES) as db_conn:
+    async with db_conn.cursor() as cursor:
+      image_ids_placeholder = '?, ' * len(image_ids)
+      image_ids_placeholder = image_ids_placeholder.strip()
+      image_ids_placeholder = image_ids_placeholder.strip(',')
+      await cursor.execute(f'''
+        SELECT id, image_bytes
+        FROM {table_name_images}
+        WHERE id IN ({image_ids_placeholder});
+      ''', image_ids)
+
+      db_images = await cursor.fetchall()
+      return db_images
+
+async def async_get_boxes_by_image_ids(*, db_path: str, table_name_boxes: str, image_ids: list):
+  async with aiosqlite.connect(db_path, timeout=1000) as db_conn:
+    async with db_conn.cursor() as cursor:
+
+      image_ids_placeholder = '?, ' * len(image_ids)
+      image_ids_placeholder = image_ids_placeholder.strip()
+      image_ids_placeholder = image_ids_placeholder.strip(',')
+      await cursor.execute(f'''
+        SELECT 
+          id, 
+          image_id, 
+          label_id,
+          x_min,
+          x_max,
+          y_min,
+          y_max,
+          confidence
+        FROM {table_name_boxes}
+        WHERE image_id IN ({image_ids_placeholder});
+      ''', image_ids)
+
+      db_boxes = await cursor.fetchall()
+
+      image_id_to_boxes = defaultdict(list)
+
+      for db_box in db_boxes:
+        image_id_to_boxes[db_box[1]] += [db_box]
+
+      result = []
+      for image_id in image_ids:
+        result += [image_id_to_boxes[image_id]]
+
+      return result

@@ -4,7 +4,8 @@ from collections import namedtuple
 import argparse
 from data.openimages.constants import Constants
 
-csv_file_with_image_labels = f'{Constants.METADATA_FILES_DIR_PATH}/train-annotations-human-imagelabels.csv'
+csv_file_with_train_image_labels = f'{Constants.METADATA_FILES_DIR_PATH}/train-annotations-human-imagelabels.csv'
+csv_file_with_val_image_labels = f'{Constants.METADATA_FILES_DIR_PATH}/validation-annotations-human-imagelabels.csv'
 csv_file_with_class_descriptions = f'{Constants.METADATA_FILES_DIR_PATH}/class-descriptions.csv'
 
 DB_PATH = Constants.IMAGE_LABELS_DB_PATH
@@ -25,7 +26,7 @@ def setup_labels_db():
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     );
 
-    CREATE TABLE  IF NOT EXISTS image_labels (
+    CREATE TABLE IF NOT EXISTS image_labels (
       id INTEGER PRIMARY KEY NOT NULL,
       original_image_id VARCHAR NOT NULL,
       label_id INT REFERENCES labels(id) NOT null,
@@ -34,10 +35,20 @@ def setup_labels_db():
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL,
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL
     );
-
   """)
 
   conn.commit()
+
+def assert_created_unique_image_label_index():
+  db_conn = sqlite3.connect(DB_PATH)
+  db_cursor_lb = db_conn.cursor()
+  db_cursor_lb.execute(f'''
+    CREATE UNIQUE INDEX 
+    IF NOT EXISTS original_image_id_and_label_id_uniq 
+    ON image_labels (original_image_id, label_id);
+  ''')
+
+  db_conn.commit()
 
 def insert_labels_into_db(labels):
   conn = sqlite3.connect(DB_PATH, timeout=1000)
@@ -145,6 +156,8 @@ def import_image_labels_to_db(path_to_image_labels_file):
 
   processed = 0
 
+  assert_created_unique_image_label_index()
+
   with open(path_to_image_labels_file, 'r', encoding='utf8') as csvfile:
     reader = csv.DictReader(csvfile)
     for row in reader:
@@ -174,7 +187,7 @@ if __name__ == '__main__':
 
   parser.add_argument('--path_to_image_labels_file',
     type=str,
-    default=csv_file_with_image_labels,
+    default=csv_file_with_train_image_labels,
     required=False,
     help='Path to file containing image labels.')
 
@@ -185,5 +198,4 @@ if __name__ == '__main__':
     import_label_set_to_db()
   elif args.table == 'image_labels':
     path_to_image_labels_file = args.path_to_image_labels_file
-    delete_all_image_labels_from_db()
     import_image_labels_to_db(path_to_image_labels_file)

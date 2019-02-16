@@ -34,3 +34,5 @@ checkpoints_2
 
 data/openimages/out
 gdown.pl
+
+models/yolov2/model_storage
