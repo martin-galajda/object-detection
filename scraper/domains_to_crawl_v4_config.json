@@ -1,0 +1,185 @@
+{
+    "domains": [
+        {
+            "url": "http://www.fotografovani.cz/",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "http://www\\.fotografovani\\.cz/cz/photo-contest/gallery/.*",
+            "galleryContainsImgSrcRegexp": null
+        },
+        {
+            "url": "https://www.extra.cz/",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": "\\.*/galerie/\\.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://www.extra.cz/\\.*/galerie/\\.*"
+        },
+        {
+            "url": "https://www.idnes.cz/",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": "www\\.idnes\\.cz\/.*\/foto\/.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "www\\.idnes\\.cz\/.*\/foto\/.*"
+        },
+        {
+            "url": "https://www.lifee.cz/",
+            
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://www.lifee.cz/galerie/\\.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://www.lifee.cz/galerie/\\.*"
+        },
+        {
+            "url": "https://www.frekvence1.cz/",
+            
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://www.frekvence1.cz/galerie/\\.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://www.frekvence1.cz/galerie\\.*"
+        },
+        {
+            "url": "https://prozeny.blesk.cz",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://prozeny\\.blesk\\.cz/galerie/.*/.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://prozeny\\.blesk\\.cz/galerie/.*/."
+        },
+        {
+            "url": "https://sme.sk",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://.*sme\\.sk/g/.*",
+            "pageWithGalleryUrlMatchesRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://.*sme\\.sk/g/.*"
+        },
+        {
+            "url": "https://fotky.sme.sk",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+            
+            "galleryUrlMatchesRegexp": "https://fotky\\.sme\\.sk/fotka/.*/.*"
+        },
+        {
+            "url": "https://www.kafe.cz",
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://www\\.kafe\\.cz/galerie/.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "galleryUrlMatchesRegexp": "https://www\\.kafe\\.cz/galerie/.*",
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://www.reflex.cz",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://www\\.reflex\\.cz/galerie/.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://www\\.reflex\\.cz/galerie/.*"
+        },
+        {
+            "url": "https://www.vitalia.cz/",
+            "pageWithGalleryContainsAnchorHrefRegexp": "/galerie/.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "galleryUrlMatchesRegexp": "https://www\\.vitalia\\.cz/galerie/.*",
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://www.jenzeny.cz/",
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": "https://cdn.jenzeny.cz/data/image/.*",
+            "galleryUrlMatchesRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://www.receptnajidlo.cz/",
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": "/shot2/cz/.*",
+            "galleryUrlMatchesRegexp": "https://www.receptnajidlo.cz/recept-galerie/.*",
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://www.recepty.cz",
+            "pageWithGalleryContainsAnchorHrefRegexp": ".*/galerie.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "galleryUrlMatchesRegexp": "https://www.recepty.cz/recept/.*/galerie.*",
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "http://www.extralife.cz/",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": "http://www.extralife.cz/galerie/.*",
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "http://www.extralife.cz/galerie/.*"
+        },
+        {
+            "url": "https://videacesky.cz",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://videacesky.cz/video/.*"
+        },
+        {
+            "url": "https://www.televizeseznam.cz/sluzba/stream",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": "https://www.televizeseznam.cz/video/.*"
+        },
+        {
+            "url": "https://www.fashionmagazin.cz",
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://www.instagram.com/.*",
+            "pageWithGalleryContainsImgSrcRegexp": "https://www.fashionmagazin.cz/wp-content/uploads/.*",
+            "galleryUrlMatchesRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://emefka.sk/",
+            "pageWithGalleryContainsAnchorHrefRegexp": "https://www.instagram.com/.*",
+            "pageWithGalleryContainsImgSrcRegexp": "https://emefka.sk/wp-content/uploads/.*",
+            "galleryUrlMatchesRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://sport.cz/",
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": "//media.sport.cz/images/gallery/.*",
+            "pageWithGalleryUrlMatchesRegexp": null,
+            "galleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://lepsija.cz/",
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": "//lepsija.cz/wp-content/.*",
+            "galleryUrlMatchesRegexp": null,
+            "pageWithGalleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://www.modernibyt.cz",
+            
+            "pageWithGalleryContainsAnchorHrefRegexp": "/image-wm.php.*",
+            "pageWithGalleryContainsImgSrcRegexp": "https://modernibyt.vshcdn.net/obrazek/.*",
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": null
+        }
+    ]
+}
