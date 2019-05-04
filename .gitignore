@@ -42,3 +42,6 @@ tensorboard-logs
 .ipynb_checkpoints
 downloads
 old_useful
+
+# Scraper related stuff that can be still useful (csv/json files)
+scraper/out

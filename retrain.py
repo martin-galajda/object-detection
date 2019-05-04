@@ -15,14 +15,14 @@ from keras.callbacks import TensorBoard
 from utils.get_last_checkpoint_from_dir import get_checkpoint_for_retraining
 from utils.copy_file_to_scratch import copy_file_to_scratch
 from utils.get_job_id import get_job_id
-from checkpoints.utils import make_checkpoint_model_dir, make_checkpoint_model_name, make_tensorboard_train_sess_dir
+from checkpoints.utils import make_checkpoint_model_name
 from tensorflow.python.client import device_lib
 from keras_custom.metrics.f1_score import f1
 from keras_custom.losses.masked_binary_crossentropy import make_masked_binary_cross_entropy
 from common.argparse_types import str2bool
 from datetime import datetime
 from training_utils.db import TrainingUtilsDB
-from training_utils.db_tables_field_names import TrainingSessionFieldsConstructor, TrainingSessionFields
+from training_utils.cli_helpers import load_training_session
 
 
 class AvailableModelNames:
@@ -35,110 +35,8 @@ class AvailableOptimizers:
     adam = 'adam'
 
 
-def parse_training_session_fields_from_args(args: argparse.Namespace) -> TrainingSessionFields:
-
-    # 'num_of_epochs_processed',
-    # 'num_of_examples_processed',
-    # 'num_of_training_images',
-    # 'num_of_validations_images',
-    # 'batch_size',
-    # 'model',
-    # 'training_dataset_type',
-    # 'optimizer',
-    # 'unfreeze_top_k_layers',
-    # 'use_multitarget_learning',
-    # 'tensorboard_logs_path',
-    # 'model_checkpoints_path',
-
-    training_session_fields = TrainingSessionFieldsConstructor(
-        id=None,
-        created_at=None,
-        updated_at=None,
-        num_of_examples_processed=None,
-
-        model= args.model.strip(),
-        training_dataset_type= DatasetTypes.MULTILABEL_CLASSIFICATION,
-        unfreeze_top_k_layers= str(args.unfreeze_top_k_layers).strip(),
-        use_multitarget_learning= args.use_multitarget_learning,
-        optimizer= args.optimizer,
-        num_of_training_images= args.images_num,
-        num_of_validations_images= args.validation_images_num,
-        model_checkpoints_path= None,
-        tensorboard_logs_path= None,
-        batch_size= args.batch_size,
-        num_of_epochs_processed= 0
-    )
-
-    return training_session_fields
-
-
-def load_training_session(args: argparse.Namespace) -> TrainingSessionFields:
-    training_utils_db = TrainingUtilsDB()
-
-    training_session_fields = parse_training_session_fields_from_args(args)
-
-    training_session = None
-    if args.training_session_id:
-        training_session = training_utils_db.get_training_session_by_id(id=int(args.training_session_id))
-    else:
-        training_session = training_utils_db.get_training_session(
-            optimizer                   = training_session_fields.optimizer,
-            model                       = training_session_fields.model,
-            training_dataset_type       = training_session_fields.training_dataset_type,
-            unfreeze_top_k_layers       = training_session_fields.unfreeze_top_k_layers,
-            use_multitarget_learning    = training_session_fields.use_multitarget_learning
-        )
-
-    if training_session is None:
-        training_session = initiate_new_training_session(training_session_fields)
-
-    return training_session
-
-
-def initiate_new_training_session(training_session_fields: TrainingSessionFields):
-    training_utils_db = TrainingUtilsDB()
-    training_session = training_utils_db.create_training_session(
-        model=training_session_fields.model,
-        optimizer=training_session_fields.optimizer,
-        training_dataset_type=training_session_fields.training_dataset_type,
-        unfreeze_top_k_layers=training_session_fields.unfreeze_top_k_layers,
-        use_multitarget_learning=training_session_fields.use_multitarget_learning,
-        num_of_training_images=training_session_fields.num_of_training_images,
-        num_of_validations_images=training_session_fields.num_of_validations_images,
-        batch_size=training_session_fields.batch_size,
-        num_of_epochs_processed=training_session_fields.num_of_epochs_processed,
-        model_checkpoints_path=None,
-        tensorboard_logs_path=None
-    )
-
-    root_path = os.getcwd()
-
-    model_checkpoints_path = make_checkpoint_model_dir(
-        training_session.training_dataset_type,
-        training_session.model,
-        training_session.id)
-    tensorboard_logs_path = make_tensorboard_train_sess_dir(
-        training_session.training_dataset_type,
-        training_session.model,
-        training_session.id)
-
-    model_checkpoints_path = os.path.abspath(f'{root_path}/{model_checkpoints_path}')
-    tensorboard_logs_path = os.path.abspath(f'{root_path}/{tensorboard_logs_path}')
-
-    os.makedirs(tensorboard_logs_path, exist_ok=True)
-    os.makedirs(model_checkpoints_path, exist_ok=True)
-
-    updated_training_session = training_utils_db.update_training_session(
-        id = training_session.id,
-        model_checkpoints_path = model_checkpoints_path,
-        tensorboard_logs_path = tensorboard_logs_path
-    )
-
-    return updated_training_session
-
-
 def load_inceptionV3_model(args: argparse.Namespace):
-    training_session = load_training_session(args)
+    training_session = load_training_session(args, DatasetTypes.MULTILABEL_CLASSIFICATION)
 
     training_utils_db = TrainingUtilsDB()
     training_run_config = training_utils_db.save_training_run_configuration(
@@ -305,6 +203,7 @@ def perform_retraining(args):
     tensorboard_cb = TensorBoard(
         log_dir=training_session.tensorboard_logs_path
     )
+
     training_progress_updater_cb = TrainingProgressDbUpdater(
         start=datetime_training_start,
         training_session_id = training_session.id,

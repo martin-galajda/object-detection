@@ -7,7 +7,7 @@ from training_utils.db_tables_field_names import TrainingSessionFields, \
     TrainingRunConfigFields, \
     TrainingRunConfigConstructor, \
     CheckpointsMetadataFields
-
+from typing import Optional
 
 class TrainingUtilsDB():
     def __init__(
@@ -60,11 +60,6 @@ class TrainingUtilsDB():
         training_dataset_type: str,
         unfreeze_top_k_layers: int,
         use_multitarget_learning: int
-        # num_of_training_images: int,
-        # num_of_validations_images: int,
-        # model_checkpoints_path: str,
-        # tensorboard_logs_path: str,
-        # batch_size: int
     ) -> TrainingSessionFields:
         db_conn = self._get_db_conn()
         cursor = db_conn.cursor()
@@ -358,7 +353,7 @@ class TrainingUtilsDB():
         generator_max_queue_size: int,
         continue_training_allowed_different_config_keys: str,
         continue_from_last_checkpoint: int,
-        last_checkpoint_path: str,
+        last_checkpoint_path: Optional[str],
         tensorboard_monitor_freq: int,
         copy_db_to_scratch: int,
         use_multiprocessing: int,
