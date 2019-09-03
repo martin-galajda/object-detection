@@ -36,6 +36,7 @@ gdown.pl
 
 models/yolov2/model_storage
 tensorboard-logs
+evaluation/Object-Detection-Metrics
 
 .vscode/last.sql
 ./downloads
@@ -45,3 +46,6 @@ old_useful
 
 # Scraper related stuff that can be still useful (csv/json files)
 scraper/out
+
+**/*.weights
+resources/test

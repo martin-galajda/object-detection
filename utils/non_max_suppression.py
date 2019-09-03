@@ -1,8 +1,23 @@
 import numpy as np
 
-def non_max_suppression(boxes: list, scores: list, min_iou: float):
+def non_max_suppression(boxes: list, scores: list, box_classes: list, min_iou: float):
     def remove_elements_by_indices(arr: list, indices: list):
         return [elem for i, elem in enumerate(arr) if i not in indices]
+
+    def compute_percentage_of_matching_classes(class_list_1: list, class_list_2: list):
+        matched = 0
+        total = len(class_list_1) + len(class_list_1)
+
+        set_class_list_1 = set()
+        for class_1 in class_list_1:
+            set_class_list_1.add(class_1)
+
+        for class_2 in class_list_2:
+            if class_2 in set_class_list_1:
+                matched += 1
+                total -= 1
+
+        return matched / total
 
     def compute_ious(box, list_of_boxes):
         min_x, min_y, max_x, max_y = box[:4]
@@ -42,10 +57,70 @@ def non_max_suppression(boxes: list, scores: list, min_iou: float):
 
         ious = compute_ious(boxes[current_highest_score_idx], boxes[box_indices_without_current_box])
 
-        box_indices_to_remove = np.where(ious >= min_iou)[0]
+        box_indices_with_significant_iou = np.where(ious >= min_iou)[0]
+        current_box_classes = box_classes[current_highest_score_idx]
+
+        box_indices_to_remove = filter(lambda box_index: compute_percentage_of_matching_classes(current_box_classes, box_classes[box_index]) > 0, box_indices_with_significant_iou)
         sorted_scores_indices = remove_elements_by_indices(sorted_scores_indices, box_indices_to_remove)
 
         indices_for_filtered_boxes += [current_highest_score_idx]
 
-    print(indices_for_filtered_boxes)
-    return boxes[indices_for_filtered_boxes]
+    return indices_for_filtered_boxes
+
+
+# Malisiewicz et al.
+def non_max_suppression_fast(boxes: np.array, overlap_thresh: float):
+    # if there are no boxes, return an empty list
+    if len(boxes) == 0:
+        return []
+
+    # if the bounding boxes integers, convert them to floats --
+    # this is important since we'll be doing a bunch of divisions
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float")
+
+    # initialize the list of picked indexes
+    pick = []
+
+    # grab the coordinates of the bounding boxes
+    x1 = boxes[:, 0]
+    y1 = boxes[:, 1]
+    x2 = boxes[:, 2]
+    y2 = boxes[:, 3]
+
+    # compute the area of the bounding boxes and sort the bounding
+    # boxes by the bottom-right y-coordinate of the bounding box
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    idxs = np.argsort(y2)
+
+    # keep looping while some indexes still remain in the indexes
+    # list
+    while len(idxs) > 0:
+        # grab the last index in the indexes list and add the
+        # index value to the list of picked indexes
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+
+        # find the largest (x, y) coordinates for the start of
+        # the bounding box and the smallest (x, y) coordinates
+        # for the end of the bounding box
+        xx1 = np.maximum(x1[i], x1[idxs[:last]])
+        yy1 = np.maximum(y1[i], y1[idxs[:last]])
+        xx2 = np.minimum(x2[i], x2[idxs[:last]])
+        yy2 = np.minimum(y2[i], y2[idxs[:last]])
+
+        # compute the width and height of the bounding box
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+
+        # compute the ratio of overlap
+        overlap = (w * h) / area[idxs[:last]]
+
+        # delete all indexes from the index list that have
+        idxs = np.delete(idxs, np.concatenate(([last],
+                                               np.where(overlap > overlap_thresh)[0])))
+
+    # return only the bounding boxes that were picked using the
+    # integer data type
+    return boxes[pick].astype("int")
