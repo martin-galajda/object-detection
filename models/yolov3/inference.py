@@ -14,28 +14,31 @@ ANCHORS = np.array([
 MODEL_WIDTH, MODEL_HEIGHT = (608, 608)
 
 
+def restore_model(path_to_model = PathConstants.YOLOV3_MODEL_OPENIMAGES_OUT_PATH):
+    return load_model(path_to_model)
+
+
 def infer_objects_in_image(
     *,
-    img_bytes: np.array,
+    image: np.array,
     path_to_model=PathConstants.YOLOV3_MODEL_OPENIMAGES_OUT_PATH,
     orig_image_height: int,
     orig_image_width: int,
-    detection_prob_treshold: 0.5,
+    detection_prob_treshold= 0.5,
+    model = None
 ):
-    yolov3fully_conv = load_model(path_to_model, compile=False)
-    arr = np.expand_dims(img_bytes, axis=0)
-    predicted = yolov3fully_conv.predict(arr / 255.)
+    yolov3fully_conv = restore_model(path_to_model) if model is None else model
+    predicted = yolov3fully_conv.predict(image / 255.)
 
     detected_objects = []
     detected_classes = []
-    detected_scores = []
     detected_scores_all_classes = []
 
     for anchor_idx, yolo_predicted in enumerate(predicted):
         num_of_grid_cols, num_of_grid_rows, num_of_anchors = yolo_predicted.shape[1], yolo_predicted.shape[2], 3
         np_arr_predicted = yolo_predicted.reshape((1, num_of_grid_cols, num_of_grid_rows, num_of_anchors, -1))
 
-        curr_detected_objects, curr_detected_classes, curr_detected_scores, curr_detected_scores_all_classes = _detect_objects(
+        curr_detected_objects, curr_detected_classes, curr_detected_scores_all_classes = _detect_objects(
             orig_image_height=orig_image_height,
             orig_image_width=orig_image_width,
             yolo_predicted=np_arr_predicted,
@@ -45,10 +48,9 @@ def infer_objects_in_image(
 
         detected_objects += curr_detected_objects
         detected_classes += curr_detected_classes
-        detected_scores += curr_detected_scores
         detected_scores_all_classes += curr_detected_scores_all_classes
 
-    return detected_objects, detected_classes, detected_scores, detected_scores_all_classes
+    return detected_objects, detected_classes, detected_scores_all_classes
 
 
 def get_corrected_boxes(*, box_width, box_height, box_x, box_y, orig_image_shape, model_image_shape):
@@ -149,7 +151,6 @@ def _detect_objects(*,
 
     picked_boxes = [box_candidates[i] for i in chosen_box_indices]
     picked_classes = [box_classes[i] for i in chosen_box_indices]
-    picked_scores = [box_scores[i] for i in chosen_box_indices]
     picked_scores_all = [box_scores_all[i] for i in chosen_box_indices]
 
-    return picked_boxes, picked_classes, picked_scores, picked_scores_all
+    return picked_boxes, picked_classes, picked_scores_all
