@@ -31,7 +31,6 @@ dict
 checkpoints
 checkpoints_2
 
-data/openimages
 gdown.pl
 
 models/yolov2/model_storage
@@ -48,4 +47,8 @@ old_useful
 scraper/out
 
 **/*.weights
+**/*.pb
 resources/test
+
+# Protobuf generated files
+models/faster_rcnn_inception_resnet_v2_oid_v4/protos/*.py

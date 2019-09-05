@@ -1,8 +1,7 @@
 from models.yolov3.constants import PathConstants
 from keras.models import load_model
-from utils.non_max_suppression import \
-    non_max_suppression_fast, non_max_suppression
-from utils.math import softmax, sigmoid
+from utils.non_max_suppression import non_max_suppression_fast, non_max_suppression
+from utils.math import sigmoid
 
 import numpy as np
 
@@ -26,7 +25,6 @@ def infer_objects_in_image(
     yolov3fully_conv = load_model(path_to_model, compile=False)
     arr = np.expand_dims(img_bytes, axis=0)
     predicted = yolov3fully_conv.predict(arr / 255.)
-    # predicted = yolov3fully_conv.predict(arr)
 
     detected_objects = []
     detected_classes = []
@@ -120,18 +118,6 @@ def _detect_objects(*,
                     grid_cell_width = (np.exp(width_feat) * ANCHORS[anchor_start_idx][anchor_idx][0]) / MODEL_WIDTH
                     grid_cell_height = (np.exp(height_feat) * ANCHORS[anchor_start_idx][anchor_idx][1]) / MODEL_HEIGHT
 
-                    print(f'''
-                        b.x = {box_center_x},
-                        b.y = {box_center_y},
-                        b.w = {grid_cell_width},
-                        b.h = {grid_cell_height}
-                        num_of_grid_rows = {num_of_grid_rows}
-                        num_of_grid_cols = {num_of_grid_cols}
-                        prob = {np.max(prob_chosen_class)}
-                        ANCHORS[anchor_start_idx][anchor_idx][0] = {ANCHORS[anchor_start_idx][anchor_idx][0]}
-                        ANCHORS[anchor_start_idx][anchor_idx][1] = {ANCHORS[anchor_start_idx][anchor_idx][1]}
-                    ''')
-
                     box_left_x, box_left_y, box_right_x, box_right_y = get_corrected_boxes(
                         box_width = grid_cell_width,
                         box_height = grid_cell_height,
@@ -144,8 +130,7 @@ def _detect_objects(*,
                         box_left_x,
                         box_left_y,
                         box_right_x,
-                        box_right_y,
-                        len(box_candidates)
+                        box_right_y
                     ]]
 
                     box_classes += [
@@ -157,17 +142,14 @@ def _detect_objects(*,
                     ]
 
                     box_scores_all += [
-                        prob_chosen_class
+                        prob_chosen_class[detected_classes_idx]
                     ]
 
     chosen_box_indices = non_max_suppression(box_candidates, box_scores, box_classes, nms_iou_tresh)
-    # chosen_box_indices = list(range(len(box_candidates)))
-    # box_candidates.sort(key = lambda box: box_scores[box[5]], reverse=True)
-    # picked_boxes = non_max_suppression_fast(np.array(box_candidates), 0.5)
+
     picked_boxes = [box_candidates[i] for i in chosen_box_indices]
     picked_classes = [box_classes[i] for i in chosen_box_indices]
     picked_scores = [box_scores[i] for i in chosen_box_indices]
-
     picked_scores_all = [box_scores_all[i] for i in chosen_box_indices]
 
     return picked_boxes, picked_classes, picked_scores, picked_scores_all
