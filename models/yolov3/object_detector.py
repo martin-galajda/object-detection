@@ -7,6 +7,8 @@ import numpy as np
 
 class ObjectDetector:
 
+    name = 'YOLOv3'
+
     def __init__(self, *, detection_prob_treshold=0.25):
         self.model = restore_model()
         self.class_index_to_human_readable_class = load_classes()

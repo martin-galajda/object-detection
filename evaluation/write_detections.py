@@ -25,7 +25,7 @@ def write_image_predictions(
                 score = detected_scores[i][j]
 
                 # <class> <probability> <left> <top> <right> <bottom>
-                out_file.write(f'{str(class_for_box).lower().replace(" ", "")} {str(score)} {left} {top} {right} {bottom}{os.linesep}')
+                out_file.write(f'{str(class_for_box).lower().replace(" ", "")} {str(score)} {int(left)} {int(top)} {int(right)} {int(bottom)}{os.linesep}')
 
 
 def write_detections(
@@ -45,7 +45,12 @@ def write_detections(
     input_dir_name = os.path.split(path_to_input_directory)[1]
     current_out_dir_path = os.path.join(path_to_output_directory, input_dir_name)
 
-    os.mkdir(current_out_dir_path)
+    if not os.path.exists(current_out_dir_path):
+        os.mkdir(current_out_dir_path)
+    current_out_dir_path = os.path.join(current_out_dir_path, object_detector.name)
+    if not os.path.exists(current_out_dir_path):
+        os.mkdir(current_out_dir_path)
+
     for image_file_in_dir in image_files_in_dir:
         target_file_path = os.path.join(path_to_input_directory, image_file_in_dir)
         predictions = object_detector.infer_object_detections(target_file_path)

@@ -5,6 +5,7 @@ import numpy as np
 
 
 class ObjectDetector:
+    name = 'FasterRCNN'
 
     def __init__(self):
         self.inference_graph = restore_inference_graph()
