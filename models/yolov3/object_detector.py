@@ -9,9 +9,12 @@ class ObjectDetector:
 
     name = 'YOLOv3'
 
-    def __init__(self, *, detection_prob_treshold=0.25):
-        self.model = restore_model()
-        self.class_index_to_human_readable_class = load_classes()
+    def __init__(self, *,
+                 detection_prob_treshold=0.25,
+                 path_to_model: str = None,
+                 path_to_classes: str = None):
+        self.model = restore_model() if path_to_model is None else restore_model(path_to_model)
+        self.class_index_to_human_readable_class = load_classes() if path_to_classes is None else load_classes(path_to_classes)
         self.detection_prob_treshold = detection_prob_treshold
 
     def infer_object_detections(self, target_file_path: str):

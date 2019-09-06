@@ -7,9 +7,13 @@ import numpy as np
 class ObjectDetector:
     name = 'FasterRCNN'
 
-    def __init__(self):
-        self.inference_graph = restore_inference_graph()
-        self.class_index_to_human_readable_class = build_class_index()
+    def __init__(self, path_to_frozen_graph: str = None, path_to_classes: str = None):
+        self.inference_graph = restore_inference_graph() \
+            if path_to_frozen_graph is None \
+            else restore_inference_graph(path_to_frozen_graph)
+        self.class_index_to_human_readable_class = build_class_index() \
+            if path_to_classes is None \
+            else build_class_index(path_to_classes)
 
     def infer_object_detections(self, target_file_path: str):
         orig_img_pil, img_np = load_pil_image_from_file(target_file_path)
