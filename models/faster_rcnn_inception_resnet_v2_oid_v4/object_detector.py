@@ -7,18 +7,25 @@ import numpy as np
 class ObjectDetector:
     name = 'FasterRCNN'
 
-    def __init__(self, path_to_frozen_graph: str = None, path_to_classes: str = None):
+    def __init__(self,
+                 path_to_frozen_graph: str = None,
+                 path_to_classes: str = None,
+                 session=None
+    ):
         self.inference_graph = restore_inference_graph() \
             if path_to_frozen_graph is None \
             else restore_inference_graph(path_to_frozen_graph)
         self.class_index_to_human_readable_class = build_class_index() \
             if path_to_classes is None \
             else build_class_index(path_to_classes)
+        self.session = session
 
     def infer_object_detections_on_loaded_image(self, img_np: np.array):
         orig_img_width, orig_img_height = img_np.shape[:2]
         img_np = np.expand_dims(img_np, 0)
-        output_dict = infer_objects_in_image(image=img_np, inference_graph=self.inference_graph)
+        output_dict = infer_objects_in_image(image=img_np,
+                                             inference_graph=self.inference_graph,
+                                             session=self.session)
 
         detected_classes = []
         detected_boxes = []
@@ -36,10 +43,10 @@ class ObjectDetector:
             img_width, img_height = orig_img_width, orig_img_height
 
             detected_boxes.append([
-                left * img_width,  # x1
-                top * img_height,  # y1
+                left * img_width,   # x1
+                top * img_height,   # y1
                 right * img_width,  # x2
-                bottom * img_height  # y2
+                bottom * img_height # y2
             ])
 
         detected_boxes = np.array(detected_boxes)

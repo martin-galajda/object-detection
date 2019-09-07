@@ -2,6 +2,7 @@ from models.yolov3.constants import PathConstants
 from keras.models import load_model
 from utils.non_max_suppression import non_max_suppression_fast, non_max_suppression
 from utils.math import sigmoid
+import time
 
 import numpy as np
 
@@ -28,7 +29,11 @@ def infer_objects_in_image(
     model = None
 ):
     yolov3fully_conv = restore_model(path_to_model) if model is None else model
+
+    start_predict = time.time()
     predicted = yolov3fully_conv.predict(image / 255.)
+    end_predict = time.time()
+    print(f'YOLOv3 predict took {end_predict - start_predict} seconds.')
 
     detected_objects = []
     detected_classes = []
