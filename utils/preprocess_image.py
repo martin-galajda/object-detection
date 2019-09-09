@@ -24,7 +24,7 @@ def resize_and_letter_box(image, *, target_width: int, target_height: int):
     width_ratio = target_width / float(im_width)
     ratio = min(height_ratio, width_ratio)
 
-    image_resized = cv2.resize(image, dsize=(0,0), fx=ratio, fy=ratio, interpolation=cv2.INTER_LINEAR)
+    image_resized = cv2.resize(image, dsize=(0, 0), fx=ratio, fy=ratio, interpolation=cv2.INTER_LINEAR)
 
     letter_box = np.full((int(target_width), int(target_height), 3), 0.5)
     row_start = int((letter_box.shape[0] - image_resized.shape[0]) / 2)
@@ -58,6 +58,7 @@ def resize_and_letter_box_pil_image(image: PIL.Image, *, target_width: int, targ
 
     return letter_box
 
+
 def resize_and_letter_box_pil_image_2(image: PIL.Image, *, target_width: int, target_height: int):
     """
     Letter box (black bars) a color image (think pan & scan movie shown
@@ -69,13 +70,13 @@ def resize_and_letter_box_pil_image_2(image: PIL.Image, *, target_width: int, ta
     """
     iw, ih = image.size
     w, h = target_width, target_height
-    scale = min(w/iw, h/ih)
-    nw = int(iw*scale)
-    nh = int(ih*scale)
+    scale = min(w / iw, h / ih)
+    nw = int(iw * scale)
+    nh = int(ih * scale)
 
-    image = image.resize((nw,nh), PIL.Image.BICUBIC)
-    new_image = PIL.Image.new('RGB', (w,h), (128,128,128))
-    new_image.paste(image, ((w-nw)//2, (h-nh)//2))
+    image = image.resize((nw, nh), PIL.Image.BICUBIC)
+    new_image = PIL.Image.new('RGB', (w, h), (128, 128, 128))
+    new_image.paste(image, ((w - nw) // 2, (h - nh) // 2))
     return new_image
 
 

@@ -1,6 +1,6 @@
 from models.yolov3.constants import PathConstants
 from keras.models import load_model
-from utils.non_max_suppression import non_max_suppression_fast, non_max_suppression
+from utils.non_max_suppression import non_max_suppression
 from utils.math import sigmoid
 import time
 
@@ -64,10 +64,10 @@ def get_corrected_boxes(*, box_width, box_height, box_x, box_y, orig_image_shape
 
     if float(model_w / orig_image_w) < float(model_h / orig_image_h):
         new_w = model_w
-        new_h = (orig_image_h * model_w) / orig_image_w
+        new_h = float(orig_image_h * model_w) / orig_image_w
     else:
         new_h = model_h
-        new_w = (orig_image_w * model_h) / orig_image_h
+        new_w = float(orig_image_w * model_h) / orig_image_h
 
     box_x = (box_x - (((model_w - new_w)/2.0)/model_w)) / float(new_w/model_w)
     box_y = (box_y - (((model_h - new_h)/2.0)/model_h)) / float(new_h/model_h)
@@ -126,12 +126,12 @@ def _detect_objects(*,
                     grid_cell_height = (np.exp(height_feat) * ANCHORS[anchor_start_idx][anchor_idx][1]) / MODEL_HEIGHT
 
                     box_left_x, box_left_y, box_right_x, box_right_y = get_corrected_boxes(
-                        box_width = grid_cell_width,
-                        box_height = grid_cell_height,
-                        box_x = box_center_x,
-                        box_y = box_center_y,
-                        orig_image_shape = (orig_image_width, orig_image_height),
-                        model_image_shape = (MODEL_WIDTH, MODEL_HEIGHT))
+                        box_width=grid_cell_width,
+                        box_height=grid_cell_height,
+                        box_x=box_center_x,
+                        box_y=box_center_y,
+                        orig_image_shape=(orig_image_width, orig_image_height),
+                        model_image_shape=(MODEL_WIDTH, MODEL_HEIGHT))
 
                     box_candidates += [[
                         box_left_x,
