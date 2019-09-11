@@ -62,7 +62,7 @@ def infer_objects_in_image(
     if session is None:
         graph = restore_inference_graph() if inference_graph is None else inference_graph
         with graph.as_default():
-            with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as session:
+            with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as session:
                 return predict_image_tensor(session)
     else:
         return predict_image_tensor(session)
