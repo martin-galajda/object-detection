@@ -7,14 +7,16 @@ import numpy as np
 class ObjectDetector:
     name = 'FasterRCNN'
 
-    def __init__(self,
-                 path_to_frozen_graph: str = None,
-                 path_to_classes: str = None,
-                 session=None
+    def __init__(
+        self,
+        path_to_frozen_graph: str = None,
+        path_to_classes: str = None,
+        session=None,
+        use_gpu: bool = False
     ):
         self.inference_graph = restore_inference_graph() \
             if path_to_frozen_graph is None \
-            else restore_inference_graph(path_to_frozen_graph)
+            else restore_inference_graph(path_to_frozen_graph, use_gpu)
         self.class_index_to_human_readable_class = build_class_index() \
             if path_to_classes is None \
             else build_class_index(path_to_classes)

@@ -10,14 +10,23 @@ OUTPUT_TENSOR_NAMES = [
 ]
 
 
-def restore_inference_graph(path_to_frozen_inference_graph: str = FasterRCNNPathConstants.PATH_TO_FROZEN_TF_GRAPH):
+def restore_inference_graph(
+    path_to_frozen_inference_graph: str = FasterRCNNPathConstants.PATH_TO_FROZEN_TF_GRAPH,
+    use_gpu: bool = False
+):
     detection_graph = tf.Graph()
     with detection_graph.as_default():
         od_graph_def = tf.GraphDef()
         with tf.gfile.GFile(path_to_frozen_inference_graph, 'rb') as fid:
             serialized_graph = fid.read()
             od_graph_def.ParseFromString(serialized_graph)
-            tf.import_graph_def(od_graph_def, name='')
+
+            if use_gpu:
+                with tf.device('/gpu:0'):
+                    tf.import_graph_def(od_graph_def, name='')
+            else:
+                with tf.device('/cpu:0'):
+                    tf.import_graph_def(od_graph_def, name='')
 
     return detection_graph
 
@@ -57,4 +66,3 @@ def infer_objects_in_image(
                 return predict_image_tensor(session)
     else:
         return predict_image_tensor(session)
-
