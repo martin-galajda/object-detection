@@ -22,7 +22,7 @@ def restore_inference_graph(
             od_graph_def.ParseFromString(serialized_graph)
 
             if use_gpu:
-                with tf.device('/gpu:0'):
+                with tf.device('/device:GPU:0'):
                     tf.import_graph_def(od_graph_def, name='')
             else:
                 with tf.device('/cpu:0'):
@@ -62,7 +62,7 @@ def infer_objects_in_image(
     if session is None:
         graph = restore_inference_graph() if inference_graph is None else inference_graph
         with graph.as_default():
-            with tf.Session() as session:
+            with tf.Session(config=tf.ConfigProto(log_device_placement=True)) as session:
                 return predict_image_tensor(session)
     else:
         return predict_image_tensor(session)
