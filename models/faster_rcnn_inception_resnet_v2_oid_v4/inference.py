@@ -22,7 +22,7 @@ def restore_inference_graph(
             od_graph_def.ParseFromString(serialized_graph)
 
             if use_gpu:
-                with tf.device('/device:GPU:0'):
+                with tf.device('/gpu:0'):
                     tf.import_graph_def(od_graph_def, name='')
             else:
                 with tf.device('/cpu:0'):
