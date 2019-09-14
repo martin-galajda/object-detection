@@ -26,8 +26,8 @@ class ObjectDetector:
     def __init__(
         self,
         *,
-        detection_threshold: float =0.5,
-        nms_threshold: float =0.6,
+        detection_threshold: float = 0.5,
+        nms_threshold: float = 0.6,
         anchors=OPENIMAGES_ANCHORS,
         model_image_width: int = DEFAULT_MODEL_IMAGE_WIDTH,
         model_image_height: int = DEFAULT_MODEL_IMAGE_HEIGHT,
@@ -36,15 +36,6 @@ class ObjectDetector:
         log_device_placement: bool = True,
         gpu_allow_growth: bool = True
     ):
-        self.model = restore_model() if path_to_model is None else restore_model(path_to_model)
-        self.class_index_to_human_readable_class = load_classes() if path_to_classes is None else load_classes(path_to_classes)
-
-        self.detection_threshold = detection_threshold
-        self.nms_threshold = nms_threshold
-        self.model_image_width = model_image_width
-        self.model_image_height = model_image_height
-
-        self.anchors = anchors / np.array([model_image_width, model_image_height])
 
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = gpu_allow_growth  # dynamically grow the memory used on the GPU
@@ -54,6 +45,16 @@ class ObjectDetector:
         set_session(sess)  # set this TensorFlow session as the default session for Keras
 
         self.session = K.get_session()
+
+        self.model = restore_model() if path_to_model is None else restore_model(path_to_model)
+        self.class_index_to_human_readable_class = load_classes() if path_to_classes is None else load_classes(path_to_classes)
+
+        self.detection_threshold = detection_threshold
+        self.nms_threshold = nms_threshold
+        self.model_image_width = model_image_width
+        self.model_image_height = model_image_height
+
+        self.anchors = anchors / np.array([model_image_width, model_image_height])
 
     #     self.outputs = self.generate_session_outputs()
     #
@@ -97,7 +98,7 @@ class ObjectDetector:
         image_np: np.array,
     ):
         orig_img_height, orig_img_width = image_np.shape[:2]
-        img_np = resize_and_letter_box(image_np/255., target_width=self.model_image_width, target_height=self.model_image_height)
+        img_np = resize_and_letter_box(image_np / 255., target_width=self.model_image_width, target_height=self.model_image_height)
         img_np = np.expand_dims(img_np, 0)
 
         detected_boxes, detected_classes, detected_scores = infer_objects_in_image(
@@ -121,5 +122,3 @@ class ObjectDetector:
     def infer_object_detections(self, target_file_path: str):
         _, img_np = load_pil_image_from_file(target_file_path)
         return self.infer_object_detections_on_loaded_image(np.array(img_np))
-
-
