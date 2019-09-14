@@ -33,7 +33,7 @@ def _construct_session_for_inference(
 
         session = tf.Session(config=config)
 
-        return session
+    return session, graph
 
 
 def restore_inference_graph(
@@ -41,18 +41,18 @@ def restore_inference_graph(
     use_gpu: bool = False,
 ):
     detection_graph = tf.Graph()
-    with detection_graph.as_default():
-        od_graph_def = tf.GraphDef()
-        with tf.gfile.GFile(path_to_frozen_inference_graph, 'rb') as fid:
-            serialized_graph = fid.read()
-            od_graph_def.ParseFromString(serialized_graph)
+    detection_graph.as_default().__enter__()
+    od_graph_def = tf.GraphDef()
+    with tf.gfile.GFile(path_to_frozen_inference_graph, 'rb') as fid:
+        serialized_graph = fid.read()
+        od_graph_def.ParseFromString(serialized_graph)
 
-            if use_gpu:
-                with tf.device('/gpu:0'):
-                    tf.import_graph_def(od_graph_def, name='')
-            else:
-                with tf.device('/cpu:0'):
-                    tf.import_graph_def(od_graph_def, name='')
+        if use_gpu:
+            with tf.device('/gpu:0'):
+                tf.import_graph_def(od_graph_def, name='')
+        else:
+            with tf.device('/cpu:0'):
+                tf.import_graph_def(od_graph_def, name='')
 
     return detection_graph
 
