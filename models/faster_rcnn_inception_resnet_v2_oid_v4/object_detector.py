@@ -14,7 +14,7 @@ class ObjectDetector:
         session=None,
         use_gpu: bool = True
     ):
-        self.session, self.graph = _construct_session_for_inference(
+        self.session = _construct_session_for_inference(
             path_to_frozen_inference_graph=path_to_frozen_graph,
             use_gpu=use_gpu,
         )
@@ -26,8 +26,7 @@ class ObjectDetector:
             else build_class_index(path_to_classes)
 
     def close(self):
-        self.session.__exit__()
-        self.graph.__exit__()
+        self.session.close()
 
     def infer_object_detections_on_loaded_image(self, img_np: np.array):
         orig_img_width, orig_img_height = img_np.shape[:2]
