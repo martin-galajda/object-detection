@@ -1,6 +1,6 @@
 import argparse
-from models.yolov3_gpu_head.conversion.darknet_model_to_keras import convert_model
-from models.yolov3_gpu_head.constants import PathConstants
+from models.yolov3_gpu_head_v2.conversion.darknet_model_to_keras import convert_model
+from models.yolov3_gpu_head_v2.constants import PathConstants
 
 
 class CLIArgs:

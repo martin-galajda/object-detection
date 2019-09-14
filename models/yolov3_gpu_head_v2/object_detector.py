@@ -1,12 +1,12 @@
-from models.yolov3_gpu_head.inference import infer_objects_in_image, restore_model
-from models.yolov3_gpu_head.conversion.utils import load_classes
+from models.yolov3_gpu_head_v2.inference import infer_objects_in_image, restore_model, _construct_out_tensors
+from models.yolov3_gpu_head_v2.conversion.utils import load_classes
 from utils.image import load_pil_image_from_file
 from utils.preprocess_image import resize_and_letter_box
 import numpy as np
 import keras.backend as K
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
-
+import time
 
 NUM_OF_CLASSES = 601
 NUM_OF_ANCHORS = 3
@@ -55,43 +55,16 @@ class ObjectDetector:
         self.model_image_height = model_image_height
 
         self.anchors = anchors / np.array([model_image_width, model_image_height])
+        out_tensors, input_tensors = _construct_out_tensors(
+            restored_model=self.model,
+            num_of_anchors=3,
+            anchors=self.anchors,
+            model_image_width=model_image_width,
+            model_image_height=model_image_height,
+        )
 
-    #     self.outputs = self.generate_session_outputs()
-    #
-    # def generate_session_outputs(self):
-    #     boxes_xy = []
-    #     boxes_wh = []
-    #     classes_probs = []
-    #     reshaped_heads = []
-    #
-    #     restored_model = self.model
-    #
-    #     for yolo_head_idx in range(len(restored_model.output)):
-    #         yolo_head = restored_model.output[yolo_head_idx]
-    #         yolo_head_shape = K.shape(yolo_head)
-    #         yolo_head_num_of_cols, yolo_head_num_of_rows = yolo_head_shape[1], yolo_head_shape[2]
-    #
-    #         curr_yolo_head = K.reshape(yolo_head, [-1, yolo_head_num_of_cols, yolo_head_num_of_rows, NUM_OF_ANCHORS,
-    #                                                5 + NUM_OF_CLASSES])
-    #         reshaped_heads.append(curr_yolo_head)
-    #
-    #         grid = K.cast(get_grid(yolo_head_shape[1], yolo_head_shape[2]), dtype=K.dtype(curr_yolo_head))
-    #
-    #         curr_boxes_xy = (K.sigmoid(curr_yolo_head[..., :2]) + grid) / K.cast(
-    #             [yolo_head_shape[1], yolo_head_shape[2]], dtype=K.dtype(curr_yolo_head))
-    #         curr_boxes_wh = K.exp(curr_yolo_head[..., 2:4]) * ANCHORS[yolo_head_idx]
-    #         curr_prob_obj = K.sigmoid(curr_yolo_head[..., 4])
-    #         curr_prob_class = K.sigmoid(curr_yolo_head[..., 5:])
-    #
-    #         curr_prob_detected_class = K.tile(
-    #             K.reshape(curr_prob_obj, [-1, K.shape(curr_prob_obj)[1], K.shape(curr_prob_obj)[2], NUM_OF_ANCHORS, 1]),
-    #             [1, 1, 1, 1, NUM_OF_CLASSES]) * curr_prob_class
-    #
-    #         boxes_xy.append(curr_boxes_xy)
-    #         boxes_wh.append(curr_boxes_wh)
-    #         classes_probs.append(curr_prob_detected_class)
-    #
-    #     return boxes_xy, boxes_wh, classes_probs
+        self.out_tensors = out_tensors
+        self.input_tensors = input_tensors
 
     def infer_object_detections_on_loaded_image(
         self,
@@ -101,17 +74,20 @@ class ObjectDetector:
         img_np = resize_and_letter_box(image_np / 255., target_width=self.model_image_width, target_height=self.model_image_height)
         img_np = np.expand_dims(img_np, 0)
 
+        start = time.time()
         detected_boxes, detected_classes, detected_scores = infer_objects_in_image(
             image=img_np,
-            restored_model=self.model,
             session=self.session,
             orig_image_height=orig_img_height,
             orig_image_width=orig_img_width,
-            detection_prob_treshold=self.detection_threshold,
-            model_image_height=self.model_image_height,
-            model_image_width=self.model_image_width,
-            anchors=self.anchors
+            out_tensors=self.out_tensors,
+            input_tensor=self.input_tensors[0],
+            orig_image_width_placeholder_tensor=self.input_tensors[1],
+            orig_image_height_placeholder_tensor=self.input_tensors[2]
         )
+        end = time.time()
+        time_in_s = end - start
+        print(f'Took {time_in_s} seconds to run prediction in tf session.')
 
         human_readable_classes = []
         for detected_class_for_img in detected_classes:

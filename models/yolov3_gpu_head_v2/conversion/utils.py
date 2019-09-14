@@ -1,7 +1,7 @@
 import configparser
 import io
 from collections import defaultdict
-from models.yolov3_gpu_head.constants import PathConstants
+from models.yolov3_gpu_head_v2.constants import PathConstants
 
 
 def load_classes(path_to_classes_file = PathConstants.YOLOV3_LABELS_FILE_PATH):

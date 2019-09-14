@@ -1,8 +1,9 @@
-from models.yolov3_gpu_head.constants import PathConstants
+from models.yolov3_gpu_head_v2.constants import PathConstants
 from keras.models import load_model
 from utils.non_max_suppression import classic_non_max_suppression
 import time
 import keras.backend as K
+import tensorflow as tf
 import numpy as np
 
 
@@ -13,6 +14,7 @@ NUM_OF_ANCHORS = 3
 
 def restore_model(path_to_model = PathConstants.YOLOV3_MODEL_OPENIMAGES_OUT_PATH):
     return load_model(path_to_model)
+
 
 def construct_grid(rows, cols):
     grid_x = K.arange(0, stop=cols)
@@ -28,21 +30,22 @@ def construct_grid(rows, cols):
     return grid
 
 
-def _infer_network_outputs(
+def _construct_out_tensors(
     *,
-    sess,
     restored_model,
     num_of_anchors,
     anchors,
-    orig_image_width,
-    orig_image_height,
     model_image_width,
     model_image_height,
-    img_np
+    prob_detection_threshold = 0.25,
+    nms_iou_threshold = 0.5
 ):
     start = time.time()
     boxes = []
     prob_class = []
+
+    placeholder_orig_image_width = K.placeholder(shape=(1,))
+    placeholder_orig_image_height = K.placeholder(shape=(1,))
 
     for yolo_head_idx in range(len(restored_model.output)):
         yolo_head = restored_model.output[yolo_head_idx]
@@ -69,7 +72,7 @@ def _infer_network_outputs(
             box_height=curr_boxes_wh[..., 1:2],
             box_x=curr_boxes_xy[..., 0:1],
             box_y=curr_boxes_xy[..., 1:2],
-            orig_image_shape=(orig_image_width, orig_image_height),
+            orig_image_shape=(placeholder_orig_image_width, placeholder_orig_image_height),
             model_image_shape=(model_image_width, model_image_height)
         ))
 
@@ -79,94 +82,78 @@ def _infer_network_outputs(
     prob_class = K.concatenate(prob_class, axis=0)
     boxes = K.concatenate(boxes, axis=0)
 
+    mask = prob_class >= prob_detection_threshold
+    max_boxes_tensor = K.constant(20, dtype='int32')
+
+    picked_boxes = []
+    picked_scores = []
+    picked_classes = []
+
+    for c in range(NUM_OF_CLASSES):
+        class_boxes = tf.boolean_mask(boxes, mask[:, c])
+        class_box_scores = tf.boolean_mask(prob_class[:, c], mask[:, c])
+        nms_index = tf.image.non_max_suppression(class_boxes, class_box_scores, max_boxes_tensor,
+                                                 iou_threshold=nms_iou_threshold)
+
+        class_boxes = K.gather(class_boxes, nms_index)
+        class_box_scores = K.gather(class_box_scores, nms_index)
+        classes = K.ones_like(class_box_scores, 'int32') * c
+
+        picked_boxes.append(class_boxes)
+        picked_scores.append(class_box_scores)
+        picked_classes.append(classes)
+
+    picked_boxes = K.concatenate(picked_boxes, axis=0)
+    picked_scores = K.concatenate(picked_scores, axis=0)
+    picked_classes = K.concatenate(picked_classes, axis=0)
+
     out_tensors = [
-        boxes,
-        prob_class,
+        picked_boxes,
+        picked_scores,
+        picked_classes
     ]
 
     print(f'Took {time.time() - start} seconds to construct network.')
 
-    start = time.time()
-    sess_out = sess.run(out_tensors, feed_dict={
-        restored_model.input: img_np,
-        K.learning_phase(): 0
-    })
+    input_tensors = [
+        restored_model.input,
+        placeholder_orig_image_width,
+        placeholder_orig_image_height
+    ]
 
-    print(f'Took {time.time() - start} seconds to infer outputs in session.')
-    boxes, out_boxes_classes = sess_out
-    return boxes, out_boxes_classes
+    return out_tensors, input_tensors
 
 
 def infer_objects_in_image(
     *,
     image: np.array,
     session,
+    out_tensors,
+    input_tensor,
+    orig_image_height_placeholder_tensor,
+    orig_image_width_placeholder_tensor,
     orig_image_height: int,
     orig_image_width: int,
-    detection_prob_treshold=0.5,
-    nms_threshold=0.6,
-    model_image_height: int,
-    model_image_width: int,
-    anchors: np.array,
-    restored_model,
-    num_of_anchors: int = NUM_OF_ANCHORS,
-    num_of_classes=NUM_OF_CLASSES
 ):
-    boxes, classes_probs = _infer_network_outputs(
-        sess=session,
-        model_image_height=model_image_height,
-        model_image_width=model_image_width,
-        anchors=anchors,
-        img_np=image,
-        orig_image_width=orig_image_width,
-        orig_image_height=orig_image_height,
-        restored_model=restored_model,
-        num_of_anchors=num_of_anchors
-    )
+    boxes, scores, classes = session.run(out_tensors, feed_dict={
+        orig_image_height_placeholder_tensor: [orig_image_height],
+        orig_image_width_placeholder_tensor: [orig_image_width],
+        input_tensor: image,
+        K.learning_phase(): 0
+    })
 
-    all_curr_detected_objects = []
-    all_curr_detected_classes = []
-    all_curr_detected_scores = []
-
-    for c in range(num_of_classes):
-        curr_mask_detected = classes_probs[..., c] > detection_prob_treshold
-        curr_probs_class = classes_probs[curr_mask_detected, :][:, c]
-        c_boxes = boxes[curr_mask_detected, :]
-
-        curr_detected_objects = []
-        curr_detected_classes = []
-        curr_detected_scores = []
-
-        for idx in range(np.count_nonzero(curr_mask_detected)):
-            box_class_prob = curr_probs_class[idx]
-
-            curr_detected_objects += [c_boxes[idx]]
-            curr_detected_classes += [c]
-            curr_detected_scores += [box_class_prob]
-
-        if len(curr_detected_objects) > 0:
-            chosen_box_indices = classic_non_max_suppression(curr_detected_objects, curr_detected_scores, nms_threshold)
-            curr_detected_objects = [curr_detected_objects[i] for i in chosen_box_indices]
-            curr_detected_classes = [curr_detected_classes[i] for i in chosen_box_indices]
-            curr_detected_scores = [curr_detected_scores[i] for i in chosen_box_indices]
-
-            all_curr_detected_objects += curr_detected_objects
-            all_curr_detected_classes += curr_detected_classes
-            all_curr_detected_scores += curr_detected_scores
-
-    return all_curr_detected_objects, all_curr_detected_classes, all_curr_detected_scores
+    return boxes, classes, scores
 
 
 def get_corrected_boxes(*, box_width, box_height, box_x, box_y, orig_image_shape, model_image_shape):
     orig_image_w, orig_image_h = orig_image_shape[0], orig_image_shape[1]
     model_w, model_h = model_image_shape[0], model_image_shape[1]
 
-    if float(model_w / orig_image_w) < float(model_h / orig_image_h):
-        w_without_padding = model_w
-        h_without_padding = (orig_image_h) * model_w / orig_image_w
-    else:
-        h_without_padding = model_h
-        w_without_padding = (orig_image_w) * model_h / orig_image_h
+    scale = K.min(
+        K.concatenate([(model_w / orig_image_w), (model_h / orig_image_h)])
+    )
+    w_without_padding = orig_image_w * scale
+    h_without_padding = orig_image_h * scale
 
     x_shift = (model_w - w_without_padding) / 2.0 / model_w
     y_shift = (model_h - h_without_padding) / 2.0 / model_h
