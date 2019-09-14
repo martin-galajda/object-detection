@@ -12,7 +12,7 @@ OUTPUT_TENSOR_NAMES = [
 
 def restore_inference_graph(
     path_to_frozen_inference_graph: str = FasterRCNNPathConstants.PATH_TO_FROZEN_TF_GRAPH,
-    use_gpu: bool = False
+    use_gpu: bool = False,
 ):
     detection_graph = tf.Graph()
     with detection_graph.as_default():

@@ -4,6 +4,9 @@ from utils.image import load_pil_image_from_file
 from utils.preprocess_image import resize_and_letter_box
 import numpy as np
 import keras.backend as K
+import tensorflow as tf
+from keras.backend.tensorflow_backend import set_session
+
 
 NUM_OF_CLASSES = 601
 NUM_OF_ANCHORS = 3
@@ -29,7 +32,9 @@ class ObjectDetector:
         model_image_width: int = DEFAULT_MODEL_IMAGE_WIDTH,
         model_image_height: int = DEFAULT_MODEL_IMAGE_HEIGHT,
         path_to_model: str = None,
-        path_to_classes: str = None
+        path_to_classes: str = None,
+        log_device_placement: bool = True,
+        gpu_allow_growth: bool = True
     ):
         self.model = restore_model() if path_to_model is None else restore_model(path_to_model)
         self.class_index_to_human_readable_class = load_classes() if path_to_classes is None else load_classes(path_to_classes)
@@ -39,8 +44,17 @@ class ObjectDetector:
         self.model_image_width = model_image_width
         self.model_image_height = model_image_height
 
-        self.session = K.get_session()
         self.anchors = anchors / np.array([model_image_width, model_image_height])
+
+        config = tf.ConfigProto()
+        config.gpu_options.allow_growth = gpu_allow_growth  # dynamically grow the memory used on the GPU
+        config.log_device_placement = log_device_placement  # to log device placement (on which device the operation ran)
+        # (nothing gets printed in Jupyter, only if you run it standalone)
+        sess = tf.Session(config=config)
+        set_session(sess)  # set this TensorFlow session as the default session for Keras
+
+        self.session = K.get_session()
+
     #     self.outputs = self.generate_session_outputs()
     #
     # def generate_session_outputs(self):
