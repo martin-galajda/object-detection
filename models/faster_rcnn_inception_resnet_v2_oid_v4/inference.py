@@ -13,10 +13,10 @@ OUTPUT_TENSOR_NAMES = [
 def _construct_session_for_inference(
     *,
     path_to_frozen_inference_graph: str = FasterRCNNPathConstants.PATH_TO_FROZEN_TF_GRAPH,
-    use_gpu: bool = False,
+    use_gpu: bool = True,
     allow_soft_placement: bool = True,
-    log_device: bool = True,
-    allow_gpu_memory_growth: bool = True,
+    log_device: bool = False,
+    allow_gpu_memory_growth: bool = False,
     force_gpu_compatible: bool = True,
 ):
     graph = restore_inference_graph(

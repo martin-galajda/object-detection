@@ -12,7 +12,7 @@ class ObjectDetector:
         path_to_frozen_graph: str = None,
         path_to_classes: str = None,
         session=None,
-        use_gpu: bool = False
+        use_gpu: bool = True
     ):
         self.session = _construct_session_for_inference(
             path_to_frozen_inference_graph=path_to_frozen_graph,
