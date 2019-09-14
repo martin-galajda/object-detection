@@ -1,4 +1,4 @@
-from models.faster_rcnn_inception_resnet_v2_oid_v4.inference import infer_objects_in_image, restore_inference_graph
+from models.faster_rcnn_inception_resnet_v2_oid_v4.inference import _construct_session_for_inference, infer_objects_in_image, restore_inference_graph
 from models.faster_rcnn_inception_resnet_v2_oid_v4.utils import build_class_index
 from utils.image import load_pil_image_from_file
 import numpy as np
@@ -14,9 +14,13 @@ class ObjectDetector:
         session=None,
         use_gpu: bool = False
     ):
-        self.inference_graph = restore_inference_graph() \
-            if path_to_frozen_graph is None \
-            else restore_inference_graph(path_to_frozen_graph, use_gpu)
+        self.session = _construct_session_for_inference(
+            path_to_frozen_inference_graph=path_to_frozen_graph,
+            use_gpu=use_gpu,
+        )
+        # self.inference_graph = restore_inference_graph() \
+        #     if path_to_frozen_graph is None \
+        #     else restore_inference_graph(path_to_frozen_graph, use_gpu)
         self.class_index_to_human_readable_class = build_class_index() \
             if path_to_classes is None \
             else build_class_index(path_to_classes)
@@ -26,7 +30,6 @@ class ObjectDetector:
         orig_img_width, orig_img_height = img_np.shape[:2]
         img_np = np.expand_dims(img_np, 0)
         output_dict = infer_objects_in_image(image=img_np,
-                                             inference_graph=self.inference_graph,
                                              session=self.session)
 
         detected_classes = []

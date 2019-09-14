@@ -10,6 +10,29 @@ OUTPUT_TENSOR_NAMES = [
 ]
 
 
+def _construct_session_for_inference(
+    *,
+    path_to_frozen_inference_graph: str = FasterRCNNPathConstants.PATH_TO_FROZEN_TF_GRAPH,
+    use_gpu: bool = False,
+    allow_soft_placement: bool = True,
+    log_device: bool = True,
+    allow_gpu_memory_growth: bool = True,
+    force_gpu_compatible: bool = True,
+):
+    graph = restore_inference_graph(
+        path_to_frozen_inference_graph,
+        use_gpu
+    )
+    with graph.as_default():
+        config = tf.ConfigProto(allow_soft_placement=allow_soft_placement, log_device_placement=log_device)
+        config.gpu_options.allow_growth = allow_gpu_memory_growth
+        config.gpu_options.force_gpu_compatible = force_gpu_compatible
+
+        session = tf.Session(config)
+
+        return session
+
+
 def restore_inference_graph(
     path_to_frozen_inference_graph: str = FasterRCNNPathConstants.PATH_TO_FROZEN_TF_GRAPH,
     use_gpu: bool = False,
