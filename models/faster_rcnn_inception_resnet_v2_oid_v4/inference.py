@@ -60,36 +60,28 @@ def restore_inference_graph(
 def infer_objects_in_image(
     *,
     image: np.array,
-    inference_graph = None,
-    session = None
+    sess = tf.Session
 ):
-    def predict_image_tensor(sess):
-        with sess.graph.as_default():
-            # Get handles to input and output tensors
-            ops = tf.get_default_graph().get_operations()
-            all_tensor_names = {output.name for op in ops for output in op.outputs}
-            tensor_dict = {}
-            for key in OUTPUT_TENSOR_NAMES:
-                tensor_name = key + ':0'
-                if tensor_name in all_tensor_names:
-                    tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
-            image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
+    with sess.graph.as_default():
+        # Get handles to input and output tensors
+        ops = tf.get_default_graph().get_operations()
+        all_tensor_names = {output.name for op in ops for output in op.outputs}
+        tensor_dict = {}
 
-            # Run inference
-            output_dict = sess.run(tensor_dict, feed_dict={image_tensor: image})
+        for key in OUTPUT_TENSOR_NAMES:
+            tensor_name = key + ':0'
+            if tensor_name in all_tensor_names:
+                tensor_dict[key] = tf.get_default_graph().get_tensor_by_name(tensor_name)
 
-            # all outputs are float32 numpy arrays, so convert types as appropriate
-            output_dict['num_detections'] = int(output_dict['num_detections'][0])
-            output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.int64)
-            output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
-            output_dict['detection_scores'] = output_dict['detection_scores'][0]
+        image_tensor = tf.get_default_graph().get_tensor_by_name('image_tensor:0')
 
-            return output_dict
+        # Run inference
+        output_dict = sess.run(tensor_dict, feed_dict={image_tensor: image})
 
-    if session is None:
-        graph = restore_inference_graph() if inference_graph is None else inference_graph
-        with graph.as_default():
-            with tf.Session(config=tf.ConfigProto(allow_soft_placement=True, log_device_placement=True)) as session:
-                return predict_image_tensor(session)
-    else:
-        return predict_image_tensor(session)
+        # all outputs are float32 numpy arrays, so convert types as appropriate
+        output_dict['num_detections'] = int(output_dict['num_detections'][0])
+        output_dict['detection_classes'] = output_dict['detection_classes'][0].astype(np.int64)
+        output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
+        output_dict['detection_scores'] = output_dict['detection_scores'][0]
+
+    return output_dict

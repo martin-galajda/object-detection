@@ -1,7 +1,7 @@
 # Prerequisites:
 
-1. Protobuf compiler (protoc)
-2. Python3 virtual environment enabled
+1. Protobuf compiler (protoc) - look [here](https://github.com/protocolbuffers/protobuf) for more info on how to install.
+2. Python3 virtual environment enabled  (from the root run `source ./venv/bin/activate`).
 
 # How to setup model resources
 

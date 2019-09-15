@@ -3,8 +3,10 @@ from keras.models import load_model
 from utils.non_max_suppression import classic_non_max_suppression
 import time
 import keras.backend as K
+import keras
 import numpy as np
-
+import tensorflow as tf
+from typing import Tuple
 
 NUM_OF_CLASSES = 601
 NUM_OF_BOX_PARAMS = 5
@@ -100,7 +102,7 @@ def _infer_network_outputs(
 def infer_objects_in_image(
     *,
     image: np.array,
-    session,
+    session: tf.Session,
     orig_image_height: int,
     orig_image_width: int,
     detection_prob_treshold=0.5,
@@ -108,7 +110,7 @@ def infer_objects_in_image(
     model_image_height: int,
     model_image_width: int,
     anchors: np.array,
-    restored_model,
+    restored_model: keras.Model,
     num_of_anchors: int = NUM_OF_ANCHORS,
     num_of_classes=NUM_OF_CLASSES
 ):
@@ -157,7 +159,28 @@ def infer_objects_in_image(
     return all_curr_detected_objects, all_curr_detected_classes, all_curr_detected_scores
 
 
-def get_corrected_boxes(*, box_width, box_height, box_x, box_y, orig_image_shape, model_image_shape):
+def get_corrected_boxes(
+    *,
+    box_width: tf.Tensor,
+    box_height: tf.Tensor,
+    box_x: tf.Tensor,
+    box_y: tf.Tensor,
+    orig_image_shape: Tuple[tf.Tensor],
+    model_image_shape: Tuple[float]
+):
+    """
+    Post-process outputs produced by YOLOv3 CNN network.
+    We letter-box and resize image into fixed size.
+    The function transforms predictions into original dimensions of the image.
+
+    :param box_width: predicted box widths by YOLOv3
+    :param box_height: predicted box heights by YOLOv3
+    :param box_x: predicted x coordinates of the center of the box
+    :param box_y: predicted y coordinates of the center of the box
+    :param orig_image_shape: (width, height) of original image
+    :param model_image_shape: (width, height) of resized image used as input to the model
+    :return: corrected boxes to match original dimensions of image
+    """
     orig_image_w, orig_image_h = orig_image_shape[0], orig_image_shape[1]
     model_w, model_h = model_image_shape[0], model_image_shape[1]
 

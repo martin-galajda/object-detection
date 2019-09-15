@@ -1,12 +1,14 @@
 from models.yolov3_gpu_head_v2.inference import infer_objects_in_image, restore_model, _construct_out_tensors
 from models.yolov3_gpu_head_v2.conversion.utils import load_classes
-from utils.image import load_pil_image_from_file
 from utils.preprocess_image import resize_and_letter_box
+from models.data.base_object_detector import BaseObjectDetector
 import numpy as np
 import keras.backend as K
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 import time
+
+
 
 NUM_OF_CLASSES = 601
 NUM_OF_ANCHORS = 3
@@ -19,14 +21,14 @@ OPENIMAGES_ANCHORS = np.array([
 ])
 
 
-class ObjectDetector:
+class ObjectDetector(BaseObjectDetector):
 
     name = 'YOLOv3'
 
     def __init__(
         self,
         *,
-        detection_threshold: float = 0.5,
+        detection_threshold: float = 0.3,
         nms_threshold: float = 0.6,
         anchors=OPENIMAGES_ANCHORS,
         model_image_width: int = DEFAULT_MODEL_IMAGE_WIDTH,
@@ -38,11 +40,16 @@ class ObjectDetector:
     ):
 
         config = tf.ConfigProto()
-        config.gpu_options.allow_growth = gpu_allow_growth  # dynamically grow the memory used on the GPU
-        config.log_device_placement = log_device_placement  # to log device placement (on which device the operation ran)
-        # (nothing gets printed in Jupyter, only if you run it standalone)
+
+        # dynamically grow the memory used on the GPU
+        config.gpu_options.allow_growth = gpu_allow_growth
+
+        # log device placement (on which device the operation ran)
+        config.log_device_placement = log_device_placement
+
+        # create and set this TensorFlow session as the default session for Keras
         sess = tf.Session(config=config)
-        set_session(sess)  # set this TensorFlow session as the default session for Keras
+        set_session(sess)
 
         self.session = K.get_session()
 
@@ -89,12 +96,7 @@ class ObjectDetector:
         time_in_s = end - start
         print(f'Took {time_in_s} seconds to run prediction in tf session.')
 
-        human_readable_classes = []
-        for detected_class_for_img in detected_classes:
-            human_readable_classes.append(self.class_index_to_human_readable_class[detected_class_for_img])
+        return detected_boxes, detected_classes, detected_scores
 
-        return detected_boxes, human_readable_classes, detected_scores
-
-    def infer_object_detections(self, target_file_path: str):
-        _, img_np = load_pil_image_from_file(target_file_path)
-        return self.infer_object_detections_on_loaded_image(np.array(img_np))
+    def get_mapping_from_class_idx_to_readable_class(self):
+        return self.class_index_to_human_readable_class

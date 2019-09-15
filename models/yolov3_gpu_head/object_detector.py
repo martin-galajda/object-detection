@@ -6,6 +6,8 @@ import numpy as np
 import keras.backend as K
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
+from models.data.base_object_detector import BaseObjectDetector
+from models.data.bounding_box import make_bounding_boxes
 
 
 NUM_OF_CLASSES = 601
@@ -19,7 +21,7 @@ OPENIMAGES_ANCHORS = np.array([
 ])
 
 
-class ObjectDetector:
+class ObjectDetector(BaseObjectDetector):
 
     name = 'YOLOv3'
 
@@ -56,43 +58,6 @@ class ObjectDetector:
 
         self.anchors = anchors / np.array([model_image_width, model_image_height])
 
-    #     self.outputs = self.generate_session_outputs()
-    #
-    # def generate_session_outputs(self):
-    #     boxes_xy = []
-    #     boxes_wh = []
-    #     classes_probs = []
-    #     reshaped_heads = []
-    #
-    #     restored_model = self.model
-    #
-    #     for yolo_head_idx in range(len(restored_model.output)):
-    #         yolo_head = restored_model.output[yolo_head_idx]
-    #         yolo_head_shape = K.shape(yolo_head)
-    #         yolo_head_num_of_cols, yolo_head_num_of_rows = yolo_head_shape[1], yolo_head_shape[2]
-    #
-    #         curr_yolo_head = K.reshape(yolo_head, [-1, yolo_head_num_of_cols, yolo_head_num_of_rows, NUM_OF_ANCHORS,
-    #                                                5 + NUM_OF_CLASSES])
-    #         reshaped_heads.append(curr_yolo_head)
-    #
-    #         grid = K.cast(get_grid(yolo_head_shape[1], yolo_head_shape[2]), dtype=K.dtype(curr_yolo_head))
-    #
-    #         curr_boxes_xy = (K.sigmoid(curr_yolo_head[..., :2]) + grid) / K.cast(
-    #             [yolo_head_shape[1], yolo_head_shape[2]], dtype=K.dtype(curr_yolo_head))
-    #         curr_boxes_wh = K.exp(curr_yolo_head[..., 2:4]) * ANCHORS[yolo_head_idx]
-    #         curr_prob_obj = K.sigmoid(curr_yolo_head[..., 4])
-    #         curr_prob_class = K.sigmoid(curr_yolo_head[..., 5:])
-    #
-    #         curr_prob_detected_class = K.tile(
-    #             K.reshape(curr_prob_obj, [-1, K.shape(curr_prob_obj)[1], K.shape(curr_prob_obj)[2], NUM_OF_ANCHORS, 1]),
-    #             [1, 1, 1, 1, NUM_OF_CLASSES]) * curr_prob_class
-    #
-    #         boxes_xy.append(curr_boxes_xy)
-    #         boxes_wh.append(curr_boxes_wh)
-    #         classes_probs.append(curr_prob_detected_class)
-    #
-    #     return boxes_xy, boxes_wh, classes_probs
-
     def infer_object_detections_on_loaded_image(
         self,
         image_np: np.array,
@@ -113,12 +78,7 @@ class ObjectDetector:
             anchors=self.anchors
         )
 
-        human_readable_classes = []
-        for detected_class_for_img in detected_classes:
-            human_readable_classes.append(self.class_index_to_human_readable_class[detected_class_for_img])
+        return detected_boxes, detected_classes, detected_scores
 
-        return detected_boxes, human_readable_classes, detected_scores
-
-    def infer_object_detections(self, target_file_path: str):
-        _, img_np = load_pil_image_from_file(target_file_path)
-        return self.infer_object_detections_on_loaded_image(np.array(img_np))
+    def get_mapping_from_class_idx_to_readable_class(self):
+        return self.class_index_to_human_readable_class

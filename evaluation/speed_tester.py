@@ -1,5 +1,6 @@
 from utils.image import load_pil_image_from_file
 import time
+from models.data.base_object_detector import BaseObjectDetector
 
 
 class SpeedTester:
@@ -9,7 +10,10 @@ class SpeedTester:
         print(f'Image width: {img_np.shape[1]}, Image height: {img_np.shape[0]}')
         self.img_np = img_np
 
-    def benchmark_detector(self, detector, num_of_iterations: int):
+    def benchmark_detector(self, detector: BaseObjectDetector, num_of_iterations: int):
+        # first inference includes optimization on computational graph
+        _ = detector.infer_object_detections_on_loaded_image(self.img_np)
+
         start = time.time()
         for i in range(num_of_iterations):
             _ = detector.infer_object_detections_on_loaded_image(self.img_np)

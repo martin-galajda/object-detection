@@ -1,4 +1,7 @@
 import os
+from models.data.base_object_detector import BaseObjectDetector
+from models.data.bounding_box import BoundingBox
+from typing import List
 
 IMAGE_FILES_EXTENSIONS = [
     '.jpg',
@@ -10,28 +13,25 @@ IMAGE_FILES_EXTENSIONS = [
 def write_image_predictions(
     path_to_output_directory: str,
     filename: str,
-    predictions: tuple
+    bounding_boxes: List[BoundingBox]
 ):
     target_out_path = os.path.join(path_to_output_directory, filename + ".txt")
-    detected_boxes, detected_classes, detected_scores = predictions
 
     with open(target_out_path, "w") as out_file:
 
-        for i, detected_box in enumerate(detected_boxes):
-            left, top, right, bottom = detected_box
-            classes_for_box = detected_classes[i]
+        for box in bounding_boxes:
+            left, top, right, bottom = box.min_x, box.min_y, box.max_x, box.max_y
+            class_for_box = box.human_readable_class.lower().replace(" ", "")
+            score = box.score
 
-            for j, class_for_box in enumerate(classes_for_box):
-                score = detected_scores[i][j]
-
-                # <class> <probability> <left> <top> <right> <bottom>
-                out_file.write(f'{str(class_for_box).lower().replace(" ", "")} {str(score)} {int(left)} {int(top)} {int(right)} {int(bottom)}{os.linesep}')
+            # <class> <probability> <left> <top> <right> <bottom>
+            out_file.write(f'{class_for_box} {str(score)} {int(left)} {int(top)} {int(right)} {int(bottom)}{os.linesep}')
 
 
 def write_detections(
     path_to_input_directory: str,
     path_to_output_directory: str,
-    object_detector
+    object_detector: BaseObjectDetector
 ):
     files_in_dir = os.listdir(path_to_input_directory)
 
@@ -53,9 +53,11 @@ def write_detections(
 
     for image_file_in_dir in image_files_in_dir:
         target_file_path = os.path.join(path_to_input_directory, image_file_in_dir)
-        predictions = object_detector.infer_object_detections(target_file_path)
+        bounding_boxes = object_detector.infer_bounding_boxes_on_target_path(target_file_path)
 
-        write_image_predictions(current_out_dir_path,
-                                image_file_in_dir,
-                                predictions)
+        write_image_predictions(
+            current_out_dir_path,
+            image_file_in_dir,
+            bounding_boxes
+        )
 
