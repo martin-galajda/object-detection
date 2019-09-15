@@ -2,9 +2,18 @@ import configparser
 import io
 from collections import defaultdict
 from models.yolov3.constants import PathConstants
+from typing import Dict
 
 
-def load_classes(path_to_classes_file = PathConstants.YOLOV3_LABELS_FILE_PATH):
+def load_classes(path_to_classes_file=PathConstants.YOLOV3_LABELS_FILE_PATH) -> Dict[int, str]:
+    """
+    Load mapping from class index to human readable class by specified file path.
+
+    :param path_to_classes_file:
+        file path to file containing labels separated by newline
+    :return:
+        dictionary containing mapping from number produced by the CNN to human readable class
+    """
     class_idx_to_class_name = {}
     with open(path_to_classes_file, 'r') as f:
         for idx, class_name in enumerate(f):
@@ -13,10 +22,11 @@ def load_classes(path_to_classes_file = PathConstants.YOLOV3_LABELS_FILE_PATH):
     return class_idx_to_class_name
 
 
-def unique_config_sections(config_file):
-    """Convert all config sections to have unique names.
+def unique_config_sections(config_file: str):
+    """
+    Convert all config sections to have unique names.
 
-    Adds unique suffixes to config sections for compability with configparser.
+    Adds unique suffixes to config sections for compatibility with configparser.
     """
     section_counters = defaultdict(int)
     output_stream = io.StringIO()
@@ -32,7 +42,7 @@ def unique_config_sections(config_file):
     return output_stream
 
 
-def parse_darknet_config(path_to_config_file):
+def parse_darknet_config(path_to_config_file: str):
     unique_config_file = unique_config_sections(path_to_config_file)
     cfg_parser = configparser.ConfigParser()
     cfg_parser.read_file(unique_config_file)

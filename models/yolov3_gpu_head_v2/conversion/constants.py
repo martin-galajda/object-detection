@@ -11,6 +11,7 @@ class YoloV3Sections:
     COST = 'cost'
     SOFTMAX = 'softmax'
 
+
 class YoloV3Activations:
     LINEAR = 'linear'
     LEAKY = 'leaky'
