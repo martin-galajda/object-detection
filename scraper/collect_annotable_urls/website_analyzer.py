@@ -5,23 +5,12 @@ import scrapy
 from scraper.collect_annotable_urls.items.page_analysis_results import PageAnalysisResults
 
 
-# def matches_page_with_gallery(
-#     website_url: str,
-#     response: scrapy.http.response.html.HtmlResponse,
-#     config: CrawlConfiguration
-# ):
-#     if config.pageWithGalleryUrlMatchesRegexp:
-#         rexp_match = re.match(config.pageWithGalleryUrlMatchesRegexp, website_url)
-#         page_with_gallery_matched_by_url = page_with_gallery_matched_by_url or rexp_match is not None
-
-
 class WebsiteAnalyzer(object):
 
     configs: List[CrawlConfiguration] = []
 
     def __init__(self, configs: List[CrawlConfiguration]):
         self.configs = configs
-
 
     def analyze_website(self, website_url: str, response: scrapy.http.response.html.HtmlResponse):
         gallery_page_matched_by_url = False
@@ -78,7 +67,5 @@ class WebsiteAnalyzer(object):
         page_analysis_results['has_match'] = has_match
         page_analysis_results['url_matched_for_gallery_page'] = gallery_page_matched_by_url
         page_analysis_results['url_matched_for_page_with_gallery'] = page_with_gallery_matched_by_url
-
-        print(f'Some config  matched: {some_config_matched}')
 
         return page_analysis_results

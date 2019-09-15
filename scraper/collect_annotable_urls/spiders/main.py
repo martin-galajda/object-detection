@@ -14,10 +14,10 @@ class CollectAnnotableUrlsSpider(CrawlSpider):
     name = 'collect_annotable_urls_spider'
 
     start_urls = configuration['start_urls']
-    # allowed_domains = configuration['root_domains']
+    allowed_domains = configuration['root_domains']
 
     rules = (
-        Rule(LinkExtractor(), callback='parse_page_item'),
+        Rule(LinkExtractor(unique=True), callback='parse_page_item', follow=True),
     )
 
     def __init__(self, *args, **kwargs):
@@ -40,5 +40,6 @@ class CollectAnnotableUrlsSpider(CrawlSpider):
         analyze_results = self.website_analyzer.analyze_website(response.url, response)
         analyze_results['page_url'] = response.url
         analyze_results['domain'] = domain
+        analyze_results['total_img_elements_found'] = len(matched_imgs_by_img_src)
 
         return analyze_results

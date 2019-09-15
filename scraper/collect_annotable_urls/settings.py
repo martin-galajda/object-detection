@@ -1,4 +1,6 @@
 from datetime import datetime
+import os
+
 # -*- coding: utf-8 -*-
 
 # Scrapy settings for collect_urls_for_annotation project
@@ -48,14 +50,14 @@ ROBOTSTXT_OBEY = True
 # Enable or disable spider middlewares
 # See https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 # SPIDER_MIDDLEWARES = {
-#    'collect_urls_for_annotation.middlewares.CollectUrlsForAnnotationSpiderMiddleware': 543,
+#    'scraper.collect_urls_for_annotation.middlewares.limit_urls_by_domain_limit.LimitUrlsByDomainLimitMiddleware': 543,
 # }
 
 # Enable or disable downloader middlewares
 # See https://doc.scrapy.org/en/latest/topics/downloader-middleware.html
-# DOWNLOADER_MIDDLEWARES = {
-#    'collect_urls_for_annotation.middlewares.CollectUrlsForAnnotationDownloaderMiddleware': 543,
-# }
+DOWNLOADER_MIDDLEWARES = {
+   'scraper.collect_annotable_urls.middlewares.limit_urls_by_domain_limit.LimitUrlsByDomainLimitMiddleware': 543,
+}
 
 # Enable or disable extensions
 # See https://doc.scrapy.org/en/latest/topics/extensions.html
@@ -70,7 +72,10 @@ ITEM_PIPELINES = {
 }
 
 curr_iso_timestamp = datetime.now().replace(microsecond=0).isoformat()
-PATH_TO_PROJECT = '/Users/martingalajda/School/DIPLOMA-THESIS/object-detection'
+PATH_TO_PROJECT = '/Users/martingalajda/School/DIPLOMA-THESIS/object-detection' \
+    if 'ENV' in os.environ and os.environ['ENV'] == 'local' \
+    else '/storage/brno3-cerit/home/marneyko/object-detection'
+
 FEED_URI = f'file://{PATH_TO_PROJECT}/scraper/out/collect_annotable_urls/output-{curr_iso_timestamp}-export.csv'
 FEED_FORMAT = 'csv'
 FEED_EXPORT_FIELDS = [
@@ -80,16 +85,47 @@ FEED_EXPORT_FIELDS = [
     'url_matched_for_page_with_gallery',
     'number_of_images_by_img_src',
     'number_of_images_by_a_href',
-    'has_match'
+    'has_match',
+    'total_img_elements_found'
 ]
 FEED_EXPORTERS = {
     'csv': 'scrapy.exporters.CsvItemExporter'
 }
+CONCURRENT_REQUESTS = 100
+REACTOR_THREADPOOL_MAXSIZE = 20
 
-AUTOTHROTTLE_ENABLED = True
-AUTOTHROTTLE_START_DELAY = 5
-AUTOTHROTTLE_MAX_DELAY = 60
+LIMIT_PER_DOMAIN = {
+    'fotografovani.cz': 10000,
+    'extra.cz': 10000,
+    'idnes.cz': 10000,
+    'lifee.cz': 10000,
+    'frekvence1.cz': 10000,
+    'prozeny.blesk.cz': 10000,
+    'blesk.cz': 10000,
+    'sme.sk': 10000,
+    'fotky.sme.sk': 10000,
+    'kafe.cz': 10000,
+    'reflex.cz': 10000,
+    'vitalia.cz': 10000,
+    'jenzeny.cz': 10000,
+    'receptnajidlo.cz': 10000,
+    'recepty.cz': 10000,
+    'extralife.cz': 10000,
+    'videacesky.cz': 10000,
+    'televizeseznam.cz': 10000,
+    'fashionmagazin.cz': 10000,
+    'emefka.sk': 10000,
+    'sport.cz': 10000,
+    'lepsija.cz': 10000,
+    'modernibyt.cz': 10000
+}
 
+# AUTOTHROTTLE_ENABLED = True
+# AUTOTHROTTLE_START_DELAY = 5
+# AUTOTHROTTLE_MAX_DELAY = 60
+DEPTH_LIMIT=3
+
+SCHEDULER_DEBUG = True
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://doc.scrapy.org/en/latest/topics/autothrottle.html
 #AUTOTHROTTLE_ENABLED = True

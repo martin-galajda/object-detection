@@ -30,7 +30,7 @@
         },
         {
             "url": "https://www.lifee.cz/",
-            
+
             "pageWithGalleryContainsAnchorHrefRegexp": "https://www.lifee.cz/galerie/.+",
             "pageWithGalleryContainsImgSrcRegexp": null,
             "pageWithGalleryUrlMatchesRegexp": null,
@@ -39,7 +39,7 @@
         },
         {
             "url": "https://www.frekvence1.cz/",
-            
+
             "pageWithGalleryContainsAnchorHrefRegexp": ".*galerie.*",
             "pageWithGalleryContainsImgSrcRegexp": ".*m\\.actve\\.net/frekvence1.*",
             "pageWithGalleryUrlMatchesRegexp": null,
@@ -80,7 +80,7 @@
             "pageWithGalleryContainsAnchorHrefRegexp": null,
             "pageWithGalleryContainsImgSrcRegexp": null,
             "pageWithGalleryUrlMatchesRegexp": null,
-            
+
             "galleryUrlMatchesRegexp": "https://fotky\\.sme\\.sk/fotka/.+/.+"
         },
         {
@@ -122,10 +122,10 @@
         },
         {
             "url": "https://www.recepty.cz",
-            "pageWithGalleryContainsAnchorHrefRegexp": ".*/galerie.*",
+            "pageWithGalleryContainsAnchorHrefRegexp": ".*galerie.*",
             "pageWithGalleryContainsImgSrcRegexp": null,
-            "galleryUrlMatchesRegexp": "https://www.recepty.cz/recept/.+/galerie.*",
-            "pageWithGalleryUrlMatchesRegexp": null
+            "pageWithGalleryUrlMatchesRegexp": null,
+            "galleryUrlMatchesRegexp": "https://www.recepty\\.cz\\.*galerie.*"
         },
         {
             "url": "http://www.extralife.cz/",
@@ -184,13 +184,19 @@
         },
         {
             "url": "https://www.modernibyt.cz",
-            
             "pageWithGalleryContainsAnchorHrefRegexp": ".*image-wm.php.*",
             "pageWithGalleryContainsImgSrcRegexp": ".*modernibyt.vshcdn.net/obrazek/.+",
-
             "pageWithGalleryUrlMatchesRegexp": ".*modernibyt.cz/.+/.+/",
-
             "galleryUrlMatchesRegexp": null
+        },
+        {
+            "url": "https://www.receptnajidlo.cz/",
+
+            "pageWithGalleryContainsAnchorHrefRegexp": null,
+            "pageWithGalleryContainsImgSrcRegexp": ".*shot2.*",
+            "pageWithGalleryUrlMatchesRegexp": null,
+
+            "galleryUrlMatchesRegexp": ".*jidlo-galerie.*"
         }
     ]
 }

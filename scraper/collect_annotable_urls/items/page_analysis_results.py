@@ -1,5 +1,5 @@
 import scrapy
-from scrapy.item import Item, Field
+from scrapy.item import Field
 
 
 class PageAnalysisResults(scrapy.Item):
@@ -10,3 +10,4 @@ class PageAnalysisResults(scrapy.Item):
     has_match = Field()
     url_matched_for_gallery_page = Field()
     url_matched_for_page_with_gallery = Field()
+    total_img_elements_found = Field()

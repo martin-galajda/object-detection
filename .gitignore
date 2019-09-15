@@ -52,3 +52,5 @@ resources/test
 
 # Protobuf generated files
 models/faster_rcnn_inception_resnet_v2_oid_v4/protos/*.py
+
+.secrets/**
