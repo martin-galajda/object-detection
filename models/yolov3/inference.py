@@ -90,20 +90,20 @@ def get_corrected_boxes(*, box_width, box_height, box_x, box_y, orig_image_shape
     return output_box
 
 
-def _detect_objects(*,
+def _detect_objects(
+    *,
     orig_image_width: int,
     orig_image_height: int,
     yolo_predicted: np.array,
     anchor_start_idx: int,
     prob_treshold: float,
-    nms_iou_tresh = 0.6
+    nms_iou_tresh = 0.5
 ):
     box_candidates = []
     box_scores = []
     box_classes = []
-    box_scores_all = []
 
-    num_of_grid_cols, num_of_grid_rows, num_of_anchors = yolo_predicted.shape[1], yolo_predicted.shape[2], 3
+    num_of_grid_cols, num_of_grid_rows = yolo_predicted.shape[1], yolo_predicted.shape[2]
 
     for col_idx, cell_grid in enumerate(yolo_predicted[0]):
         for row_idx, cell in enumerate(cell_grid):
@@ -133,29 +133,22 @@ def _detect_objects(*,
                         orig_image_shape=(orig_image_width, orig_image_height),
                         model_image_shape=(MODEL_WIDTH, MODEL_HEIGHT))
 
-                    box_candidates += [[
-                        box_left_x,
-                        box_left_y,
-                        box_right_x,
-                        box_right_y
-                    ]]
+                    for i in detected_classes_idx:
+                        detected_class_idx = i
+                        box_candidates.append([
+                            box_left_x,
+                            box_left_y,
+                            box_right_x,
+                            box_right_y
+                        ])
 
-                    box_classes += [
-                        detected_classes_idx
-                    ]
-
-                    box_scores += [
-                        np.max(prob_chosen_class)
-                    ]
-
-                    box_scores_all += [
-                        prob_chosen_class[detected_classes_idx]
-                    ]
+                        box_classes.append(detected_class_idx)
+                        box_scores.append(prob_chosen_class[i])
 
     chosen_box_indices = non_max_suppression(box_candidates, box_scores, box_classes, nms_iou_tresh)
 
     picked_boxes = [box_candidates[i] for i in chosen_box_indices]
     picked_classes = [box_classes[i] for i in chosen_box_indices]
-    picked_scores_all = [box_scores_all[i] for i in chosen_box_indices]
+    picked_scores = [box_scores[i] for i in chosen_box_indices]
 
-    return picked_boxes, picked_classes, picked_scores_all
+    return picked_boxes, picked_classes, picked_scores
