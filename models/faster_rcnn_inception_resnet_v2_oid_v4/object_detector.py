@@ -31,7 +31,7 @@ class ObjectDetector(BaseObjectDetector):
         self.session.close()
 
     def infer_object_detections_on_loaded_image(self, img_np: np.array):
-        orig_img_width, orig_img_height = img_np.shape[:2]
+        orig_img_height, orig_img_width = img_np.shape[:2]
         img_np = np.expand_dims(img_np, 0)
         output_dict = infer_objects_in_image(
             image=img_np,
