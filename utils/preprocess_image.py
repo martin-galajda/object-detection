@@ -7,7 +7,7 @@ def preprocess_image_bytes(image_bytes):
     return image_bytes / 255.0
 
 
-def resize_and_letter_box(image, *, target_width: int, target_height: int):
+def resize_and_letter_box(image, *, target_width: int, target_height: int, interpolation=cv2.INTER_LINEAR):
     """
     Resize and letter box image to have a desired width and height.
     Image is resized with cv2.INTER_LINEAR interpolation strategy.
@@ -24,7 +24,7 @@ def resize_and_letter_box(image, *, target_width: int, target_height: int):
     width_ratio = target_width / float(im_width)
     ratio = min(height_ratio, width_ratio)
 
-    image_resized = cv2.resize(image, dsize=(0, 0), fx=ratio, fy=ratio, interpolation=cv2.INTER_LINEAR)
+    image_resized = cv2.resize(image, dsize=(0, 0), fx=ratio, fy=ratio, interpolation=interpolation)
 
     letter_box = np.full((int(target_width), int(target_height), 3), 0.5)
     row_start = int((letter_box.shape[0] - image_resized.shape[0]) / 2)

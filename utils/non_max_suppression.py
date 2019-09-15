@@ -4,21 +4,6 @@ def non_max_suppression(boxes: list, scores: list, box_classes: list, min_iou: f
     def remove_elements_by_indices(arr: list, indices: list):
         return [elem for i, elem in enumerate(arr) if i not in indices]
 
-    def compute_percentage_of_matching_classes(class_list_1: list, class_list_2: list):
-        matched = 0
-        total = len(class_list_1) + len(class_list_1)
-
-        set_class_list_1 = set()
-        for class_1 in class_list_1:
-            set_class_list_1.add(class_1)
-
-        for class_2 in class_list_2:
-            if class_2 in set_class_list_1:
-                matched += 1
-                total -= 1
-
-        return matched / total
-
     def compute_ious(box, list_of_boxes):
         min_x, min_y, max_x, max_y = box[:4]
         area_box = [max_x - min_x, max_y - min_y]
@@ -58,9 +43,9 @@ def non_max_suppression(boxes: list, scores: list, box_classes: list, min_iou: f
         ious = compute_ious(boxes[current_highest_score_idx], boxes[box_indices_without_current_box])
 
         box_indices_with_significant_iou = np.where(ious >= min_iou)[0]
-        current_box_classes = box_classes[current_highest_score_idx]
+        current_box_class = box_classes[current_highest_score_idx]
 
-        box_indices_to_remove = filter(lambda box_index: compute_percentage_of_matching_classes(current_box_classes, box_classes[box_index]) > 0, box_indices_with_significant_iou)
+        box_indices_to_remove = filter(lambda box_index: current_box_class == box_classes[box_index], box_indices_with_significant_iou)
         sorted_scores_indices = remove_elements_by_indices(sorted_scores_indices, box_indices_to_remove)
 
         indices_for_filtered_boxes += [current_highest_score_idx]
