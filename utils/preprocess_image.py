@@ -19,6 +19,10 @@ def resize_and_letter_box(image, *, target_width: int, target_height: int, inter
     :return: numpy.ndarray((target_width, target_height, channels), dtype=numpy.uint8
         letterboxed-image with black background, pixels are scaled to be from interval [0,1]
     """
+
+    if len(image.shape) == 2:
+        image = np.stack((image,) * 3, axis=-1)
+
     im_width, im_height = image.shape[:2]
     height_ratio = target_height / float(im_height)
     width_ratio = target_width / float(im_width)
