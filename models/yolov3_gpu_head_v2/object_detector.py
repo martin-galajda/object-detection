@@ -36,7 +36,8 @@ class ObjectDetector(BaseObjectDetector):
         path_to_model: str = None,
         path_to_classes: str = None,
         log_device_placement: bool = True,
-        gpu_allow_growth: bool = True
+        gpu_allow_growth: bool = True,
+        verbose: bool = True,
     ):
 
         config = tf.ConfigProto()
@@ -72,6 +73,7 @@ class ObjectDetector(BaseObjectDetector):
 
         self.out_tensors = out_tensors
         self.input_tensors = input_tensors
+        self.verbose = verbose
 
     def infer_object_detections_on_loaded_image(
         self,
@@ -94,7 +96,9 @@ class ObjectDetector(BaseObjectDetector):
         )
         end = time.time()
         time_in_s = end - start
-        print(f'Took {time_in_s} seconds to run prediction in tf session.')
+
+        if self.verbose:
+            print(f'Took {time_in_s} seconds to run prediction in tf session.')
 
         return detected_boxes, detected_classes, detected_scores
 
