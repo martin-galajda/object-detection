@@ -31,12 +31,21 @@ def draw_detected_boxes_on_pil_image_v2(detected_boxes: np.array, detected_class
         draw.text(((max(x1, 0)), (y1) - 10), classes_with_scores, fill="red")
 
 
-def draw_bounding_boxes_on_pil_image(bounding_boxes: List[BoundingBox], img: PIL.Image):
+def draw_bounding_boxes_on_pil_image(
+    bounding_boxes: List[BoundingBox],
+    img: PIL.Image,
+    *,
+    font = None
+):
     draw = ImageDraw.Draw(img)
+
+    offset = 0 if font is None else font.size - 10
+    offset = max(offset, 0)
+
     for box in bounding_boxes:
         classes_with_scores = f'{box.human_readable_class} {int(box.score * 100)}%'
         draw_rectangle(draw, [box.min_x, box.min_y, box.max_x, box.max_y])
-        draw.text(((max(box.min_x, 0)), (box.min_y) - 10), classes_with_scores, fill="red")
+        draw.text(((max(box.min_x, 0)), (box.min_y) - 10 - offset), classes_with_scores, fill="red", font=font)
 
 
 def draw_rectangle(draw_context: ImageDraw, box_coordinates: np.array, color="red", width=3):
