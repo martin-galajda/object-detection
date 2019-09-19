@@ -36,6 +36,7 @@ gdown.pl
 models/yolov2/model_storage
 tensorboard-logs
 evaluation/Object-Detection-Metrics
+evaluation/**/*.txt
 
 .vscode/last.sql
 ./downloads

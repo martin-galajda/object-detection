@@ -7,7 +7,7 @@ from models.faster_rcnn_inception_resnet_v2_oid_v4.constants import FasterRCNNPa
 
 
 class ObjectDetector(BaseObjectDetector):
-    name = 'Faster R-CNN'
+    name = 'FasterRCNN'
 
     def __init__(
         self,

@@ -1,5 +1,5 @@
 import argparse
-from models.yolov3.object_detector import ObjectDetector as YOLOv3ObjectDetector
+from models.yolov3_gpu_head_v2.object_detector import ObjectDetector as YOLOv3ObjectDetector
 from models.faster_rcnn_inception_resnet_v2_oid_v4.object_detector import ObjectDetector as FasterRCNNObjectDetector
 from evaluation.write_detections import write_detections
 
@@ -9,12 +9,16 @@ class ObjectDetectorOptions:
     FASTER_RCNN = 'faster_rcnn'
 
 
-def generate_detections_files(args):
-    model = YOLOv3ObjectDetector() \
-        if args.object_detector == ObjectDetectorOptions.YOLOV3 \
+def generate_detections_files(
+    input_path: str,
+    output_path: str,
+    object_detector: str
+):
+    model = YOLOv3ObjectDetector(verbose=False) \
+        if object_detector == ObjectDetectorOptions.YOLOV3 \
         else FasterRCNNObjectDetector()
 
-    write_detections(args.input_path, args.output_path, model)
+    write_detections(input_path, output_path, model)
 
 
 def main():
@@ -34,10 +38,14 @@ def main():
                         type=str,
                         choices=[ObjectDetectorOptions.YOLOV3, ObjectDetectorOptions.FASTER_RCNN],
                         required=True,
-                        help='Determine which object detector to use (YOLOV3/FasterRCNN).')
+                        help=f'Determine which object detector to use ({ObjectDetectorOptions.YOLOV3}, {ObjectDetectorOptions.FASTER_RCNN}).')
 
     args = parser.parse_args()
-    generate_detections_files(args)
+    generate_detections_files(
+        input_path=args.input_path,
+        output_path=args.output_path,
+        object_detector=args.object_detector
+    )
 
 
 if __name__ == "__main__":

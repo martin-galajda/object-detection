@@ -9,6 +9,7 @@ class BoundingBox:
     score: float
     class_idx: int
     human_readable_class: str
+    filename: str
 
     def __init__(
         self,
@@ -19,15 +20,17 @@ class BoundingBox:
         max_y: float,
         score: float,
         class_idx: int,
-        human_readable_class: str
+        human_readable_class: str,
+        filename: str = None
     ):
-        self.min_x = min_x
-        self.min_y = min_y
-        self.max_x = max_x
-        self.max_y = max_y
+        self.min_x = int(min_x)
+        self.min_y = int(min_y)
+        self.max_x = int(max_x)
+        self.max_y = int(max_y)
         self.class_idx = class_idx
-        self.score = score
+        self.score = float(score)
         self.human_readable_class = human_readable_class
+        self.filename = filename
 
 
 def make_bounding_boxes(

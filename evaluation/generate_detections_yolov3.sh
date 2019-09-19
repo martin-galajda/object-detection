@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-#INPUT_PATH="/Users/martingalajda/School/DIPLOMA-THESIS/firestore-go-utilities/out/images/test1"
-# INPUT_PATH=
+INPUT_PATH=
+# INPUT_PATH="/Users/martingalajda/School/DIPLOMA-THESIS/firestore-go-utilities/out/images/export-2019-09-05T13:59:12+02:00"
+
 OUTPUT_PATH="./detections"
 
 if [[ -z "$INPUT_PATH" ]];
