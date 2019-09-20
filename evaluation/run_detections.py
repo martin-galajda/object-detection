@@ -17,7 +17,7 @@ def generate_detections_files(
 ):
     model = YOLOv3ObjectDetector(**detector_constructor_args) \
         if object_detector == ObjectDetectorOptions.YOLOV3 \
-        else FasterRCNNObjectDetector()
+        else FasterRCNNObjectDetector(**detector_constructor_args)
 
     write_detections(input_path, output_path, model)
 
