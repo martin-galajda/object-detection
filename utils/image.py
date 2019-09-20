@@ -6,7 +6,9 @@ import cv2
 def load_pil_image_from_file(file_path: str) -> (Image, np.array):
     img = Image.open(file_path)
     img.load()
-    return img, np.asarray(img, dtype="int32")
+    rgb_image = img.convert('RGB')
+
+    return rgb_image, np.asarray(rgb_image, dtype="int32")
 
 
 def load_image_from_file(file_path: str):
