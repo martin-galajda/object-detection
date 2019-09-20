@@ -45,7 +45,7 @@ def calculateInterpolatedAveragePrecision(
 
 class Evaluator:
     """
-    Class responsible for computin average precision based on
+    Computes average precision based on
     provided list of detected and ground truth boxes.
     """
     detected_bboxes: List[BoundingBox]
@@ -146,10 +146,11 @@ class Evaluator:
 
             recalls = cumulated_TP / len(current_gt_bboxes)
             precisions = cumulated_TP / (cumulated_TP + cumulated_FP)
-            precisions = np.divide(cumulated_TP, (cumulated_TP + cumulated_FP))
 
             AP, recall_values, interp_precision_vals = calculateInterpolatedAveragePrecision(
-                recalls=recalls, precisions=precisions)
+                recalls=recalls,
+                precisions=precisions
+            )
 
             AP_per_class[class_idx] = AP
             interpolated_recalls_per_class[class_idx] = recall_values

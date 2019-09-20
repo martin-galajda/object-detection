@@ -4,10 +4,10 @@ from typing import Dict, List
 
 class EvaluationResults:
     """
-    Class responsible for aggregating and storing evaluation results
+    Aggregates and stores evaluation results
       for average precision metric.
 
-    Stores:
+    Metrics stored:
      - AP for each class
      - Recalls for each class
      - Interpolated precisions for each class

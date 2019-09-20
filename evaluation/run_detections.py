@@ -12,9 +12,10 @@ class ObjectDetectorOptions:
 def generate_detections_files(
     input_path: str,
     output_path: str,
-    object_detector: str
+    object_detector: str,
+    detector_constructor_args: dict = {}
 ):
-    model = YOLOv3ObjectDetector(verbose=False) \
+    model = YOLOv3ObjectDetector(**detector_constructor_args) \
         if object_detector == ObjectDetectorOptions.YOLOV3 \
         else FasterRCNNObjectDetector()
 
