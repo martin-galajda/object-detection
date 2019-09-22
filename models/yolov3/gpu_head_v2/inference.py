@@ -1,4 +1,4 @@
-from models.yolov3_gpu_head_v2.constants import PathConstants
+from models.yolov3.constants import PathConstants
 from keras.models import load_model
 import time
 import keras.backend as K
