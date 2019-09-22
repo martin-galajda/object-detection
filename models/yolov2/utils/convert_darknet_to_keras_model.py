@@ -13,6 +13,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.models import Model
 from keras.regularizers import l2
 from keras.utils.vis_utils import plot_model as plot
+from common.assertions import assert_true
 
 
 def space_to_depth_x2(x):
@@ -29,8 +30,7 @@ def space_to_depth_x2_output_shape(input_shape):
     Note: For Lambda with TensorFlow backend, output shape may not be needed.
     """
     return (input_shape[0], input_shape[1] // 2, input_shape[2] // 2, 4 *
-            input_shape[3]) if input_shape[1] else (input_shape[0], None, None,
-                                                    4 * input_shape[3])
+            input_shape[3]) if input_shape[1] else (input_shape[0], None, None, 4 * input_shape[3])
 
 
 def unique_config_sections(config_file):
@@ -53,10 +53,10 @@ def unique_config_sections(config_file):
 
 
 def darknet_yolov2_to_keras(config_path, weights_path, output_path, *, fully_convolutional, plot_model = False, path_to_graph_output = None):
-    assert(config_path.endswith('.cfg'), f'{config_path} is not a .cfg file')
-    assert(weights_path.endswith('.weights'), f'{weights_path} is not a .weights file')
-    assert(output_path.endswith('.h5'), f'output path {output_path} is not a .h5 file')
-    
+    assert_true(config_path.endswith('.cfg'), f'{config_path} is not a .cfg file')
+    assert_true(weights_path.endswith('.weights'), f'{weights_path} is not a .weights file')
+    assert_true(output_path.endswith('.h5'), f'output path {output_path} is not a .h5 file')
+
     output_root = os.path.splitext(output_path)[0]
 
     # Load weights and config.
@@ -221,8 +221,8 @@ def darknet_yolov2_to_keras(config_path, weights_path, output_path, *, fully_con
             with open('{}_anchors.txt'.format(output_root), 'w') as f:
                 print(cfg_parser[section]['anchors'], file=f)
 
-        elif (section.startswith('net') or section.startswith('cost') or
-              section.startswith('softmax')):
+        elif (section.startswith('net') or section.startswith('cost')
+              or section.startswith('softmax')):
             pass  # Configs not currently handled during model definition.
 
         else:
@@ -232,11 +232,11 @@ def darknet_yolov2_to_keras(config_path, weights_path, output_path, *, fully_con
     # Create and save model.
     model = Model(inputs=all_layers[0], outputs=all_layers[-1])
     print(model.summary())
-    
+
     model.save(f'{output_path}')
     print(f'Saved Keras model to {output_path}')
     # Check to see if all weights have been read.
-    
+
     remaining_weights = len(weights_file.read()) / 4
     weights_file.close()
     print(f'Read {count} of {count + remaining_weights} from Darknet weights.')

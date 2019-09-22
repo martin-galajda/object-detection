@@ -36,9 +36,6 @@ def preprocess_true_boxes(boxes):
     # Box preprocessing.
     # Original boxes stored as 1D list of class, x_min, y_min, x_max, y_max.
     boxes = [box.reshape((-1, 5)) for box in boxes]
-    # Get extents as y_min, x_min, y_max, x_max, class for comparision with
-    # model output.
-    boxes_extents = [box[:, [2, 1, 4, 3, 0]] for box in boxes]
 
     # Get box parameters as x_center, y_center, box_width, box_height, class.
     boxes_xy = [0.5 * (box[:, 3:5] + box[:, 1:3]) for box in boxes]

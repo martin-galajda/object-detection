@@ -1,20 +1,21 @@
-import tensorflow as tf
-import numpy as np
 import asyncio
 import argparse
+import keras
 
-from data.openimages.constants import BoxableImagesConstants
-from models.yolov2.constants import Constants as YOLOV2Constants
-from keras.models import load_model, Model
-from keras.layers import Conv2D, Lambda, Input
-from models.yolov2.loss import lambda_loss
-from models.yolov2.utils.load_anchors import load_anchors
-from models.yolov2.preprocessing.training import preprocess_image_bytes, preprocess_true_boxes
-from data.openimages.boxable_db import async_get_boxes_by_image_ids, async_get_images_by_ids
-from models.yolov2.preprocessing.training import get_detector_mask
+from data.openimages.constants import BoxableImagesConstants, DatasetTypes
 from data.openimages.boxable_batch_generator_db import BoxableOpenImagesData
 from common.argparse_types import str2bool
+from models.yolov2.loss import yolo_loss_fn
 from utils.copy_file_to_scratch import copy_file_to_scratch
+
+from models.yolov2.utils.get_model_for_retraining import get_model_for_retraining
+from training_utils.cli_helpers import load_training_session, create_training_run
+from keras.callbacks import TensorBoard
+from keras_custom.callbacks.model_saver import ModelSaver
+from keras_custom.callbacks.training_progress_db_updater import TrainingProgressDbUpdater
+from training_utils.db_tables_field_names import TrainingSessionFields, TrainingRunConfigFields
+from utils.get_last_checkpoint_from_dir import get_checkpoint_for_retraining
+from datetime import datetime
 
 
 class AvailableOptimizers:
@@ -22,85 +23,66 @@ class AvailableOptimizers:
     adam = 'adam'
 
 
-def get_model_for_retraining():
-    anchors = load_anchors()
-    num_classes = BoxableImagesConstants.NUM_OF_CLASSES
-    path_to_pretrained_yolov2 = YOLOV2Constants.PATH_TO_PRETRAINED_YOLO_V2_MODEL_FULLY_CONV
 
-    pretrained_model = load_model(path_to_pretrained_yolov2)
+def load_model(training_session: TrainingSessionFields, training_run_config: TrainingRunConfigFields):
+    file_for_latest_model = None
+    if training_run_config.continue_from_last_checkpoint:
+        checkpoint_dir = training_session.model_checkpoints_path
+        file_for_latest_model = get_checkpoint_for_retraining(checkpoint_dir)
 
-    # topless_pretrained_yolo_v2.layers.pop()
+    if file_for_latest_model:
+        restored_model = keras.models.load_model(file_for_latest_model, {
+            'yolo_loss': lambda y_true, y_pred: y_pred[0]
+        })
 
-    yolov2_top = Conv2D(
-        filters = len(anchors) * (5 + num_classes),
-        kernel_size=(1, 1),
-        activation='linear',
-        name='final_conv2d'
-    )(pretrained_model.layers[-2].output)
+        print(f'Loaded model from {model_checkpoint_path}. Going to continue training.')
 
-    yolov2_body = Model(pretrained_model.layers[0].input, yolov2_top)
+        return restored_model
 
-    # Create model input layers.
-    boxes_input = Input(shape=(None, 5), name='boxes_input')
-    detectors_mask_shape = (14, 14, 5, 1)
-    matching_boxes_shape = (14, 14, 5, 5)
+    # yolov2_body, yolov2_model_with_loss = get_model_for_retraining()
+    yolov2_body = get_model_for_retraining()
 
-    detectors_mask_input = Input(shape=detectors_mask_shape, name="detectors_mask_input")
-    matching_boxes_input = Input(shape=matching_boxes_shape, name="matching_boxes_input")
+    if training_session.unfreeze_top_k_layers == 'all':
+        # num_of_top_k_trainable_layers = len(yolov2_model_with_loss.layers)
+        num_of_top_k_trainable_layers = len(yolov2_body.layers)
+    else:
+        num_of_top_k_trainable_layers = int(training_session.unfreeze_top_k_layers)
 
-    # Place model loss on CPU to reduce GPU memory usage.
-    with tf.device('/cpu:0'):
-        # TODO: Replace Lambda with custom Keras layer for loss.
-        yolo_loss_layer = Lambda(
-            lambda_loss,
-            output_shape=(1, ),
-            name='yolo_loss',
-            arguments={
-                'anchors': anchors,
-                'num_classes': num_classes
-            })
+    # for pretrained_layer in yolov2_model_with_loss.layers:
+    for pretrained_layer in yolov2_body.layers:
+        pretrained_layer.trainable = False
 
-        model_loss = yolo_loss_layer([
-            yolov2_body.output, 
-            boxes_input,
-            detectors_mask_input,
-            matching_boxes_input
-        ])
+    # for pretrained_layer in yolov2_model_with_loss.layers[-num_of_top_k_trainable_layers:]:
+    for pretrained_layer in yolov2_body.layers[-num_of_top_k_trainable_layers:]:
+        pretrained_layer.trainable = True
 
+    def yolo_lambda_loss_fn(y_true, y_pred):
+        return y_pred
 
-    yolov2_model_with_loss = Model([yolov2_body.input, boxes_input, detectors_mask_input, matching_boxes_input], model_loss)
+    # This is a hack to use the custom loss function in the last layer
+    # yolov2_model_with_loss.compile(optimizer='adam', loss={
+    #     'yolo_loss': yolo_lambda_loss_fn
+    # })
+    yolov2_body.compile(optimizer='adam', loss={
+        'yolo_output': yolo_loss_fn
+    })
 
-    yolov2_model_with_loss.compile(optimizer='adam')
+    # for idx, pretrained_layer in enumerate(yolov2_model_with_loss.layers):
+    for idx, pretrained_layer in enumerate(yolov2_body.layers):
+        print(f'Layer with idx {idx} is trainable: {pretrained_layer.trainable}')
 
-    return yolov2_body, yolov2_model_with_loss
+    # return yolov2_model_with_loss
+    return yolov2_body
 
 
 async def main(args):
-    yolov2_body, yolov2_model_with_loss = get_model_for_retraining()
-
-    num_of_top_k_trainable_layers = args.unfreeze_top_k_layers
+    training_session = load_training_session(args, DatasetTypes.OBJECT_DETECTION)
+    training_run_config = create_training_run(args, training_session)
+    yolov2_model_with_loss = load_model(training_session, training_run_config)
 
     db_path = args.db_path
     if args.copy_db_to_scratch:
         db_path = copy_file_to_scratch(db_path)
-
-    print(f'Num of top layers unfreezing: {num_of_top_k_trainable_layers}')
-    for pretrained_layer in yolov2_model_with_loss.layers:
-        pretrained_layer.trainable = False
-
-    if args.unfreeze_top_k_layers == 'all':
-        for pretrained_layer in yolov2_model_with_loss.layers:
-            pretrained_layer.trainable = True
-    else:
-        # last two layers must be always trainable
-        for pretrained_layer in yolov2_model_with_loss.layers[-(num_of_top_k_trainable_layers + 2):]:
-            pretrained_layer.trainable = True
-
-    # This is a hack to use the custom loss function in the last layer
-    yolov2_model_with_loss.compile( optimizer='adam', loss={ 'yolo_loss': lambda y_true, y_pred: y_pred }) 
-
-    for idx, pretrained_layer in enumerate(yolov2_model_with_loss.layers):
-        print(f'Layer with idx is trainable: {pretrained_layer.trainable}')
 
     # logging = TensorBoard()
     # checkpoint = ModelCheckpoint("trained_stage_3_best.h5", monitor='val_loss',
@@ -123,13 +105,40 @@ async def main(args):
         use_multitarget_learning=args.use_multitarget_learning,
     )
 
+    datetime_training_start = datetime.utcnow()
+    checkpointer = ModelSaver(
+        every_n_minutes=training_run_config.save_checkpoint_every_n_minutes,
+        checkpoint_model_dir=training_session.model_checkpoints_path,
+        training_run_config=training_run_config,
+        datetime_start=datetime_training_start
+    )
+
+    tensorboard_cb = TensorBoard(
+        log_dir=training_session.tensorboard_logs_path
+    )
+    training_progress_updater_cb = TrainingProgressDbUpdater(
+        start=datetime_training_start,
+        training_session_id=training_session.id,
+        training_run_config_id=training_run_config.id,
+        metrics_to_save=[
+            'loss',
+            'val_loss',
+            'basic_accuracy',
+            'val_basic_accuracy'
+        ],
+        path_to_checkpoints=training_session.model_checkpoints_path
+    )
+
     yolov2_model_with_loss.fit_generator(
         generator,
         epochs=args.epochs,
         use_multiprocessing=args.use_multiprocessing,
         workers=args.workers,
         max_queue_size=args.generator_max_queue_size,
+        callbacks=[checkpointer, tensorboard_cb, training_progress_updater_cb],
+        # metrics=[]
     )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script for retraining YOLOv2 on OpenImages boxable dataset.")
@@ -138,6 +147,19 @@ if __name__ == "__main__":
                         type=str,
                         default=BoxableImagesConstants.PATH_TO_DB_YOLO_V2,
                         help='Path to database containing boxable images from OpenImages.')
+
+    parser.add_argument('--training_session_id',
+                        type=int,
+                        default=None,
+                        help='Training session id to resume.')
+
+    parser.add_argument('--model',
+                        type=str,
+                        default=BoxableImagesConstants.YOLOV2_MODEL_NAME,
+                        choices=[
+                            BoxableImagesConstants.YOLOV2_MODEL_NAME,
+                        ],
+                        help='Name of the model to use.')
 
     parser.add_argument('--table_name_images',
                         type=str,
