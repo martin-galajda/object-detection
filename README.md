@@ -11,7 +11,7 @@ Follow the instructions [here](https://github.com/martinGalajdaSchool/object-det
 
 ## Setuping YOLOv3
 
-Follow the instructions [here](https://github.com/martinGalajdaSchool/object-detection/tree/master/models/yolov3_gpu_head_v2/README.md).
+Follow the instructions [here](https://github.com/martinGalajdaSchool/object-detection/tree/master/models/yolov3/README.md).
 
 
 # Directory structure
