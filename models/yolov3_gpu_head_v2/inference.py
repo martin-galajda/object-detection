@@ -1,6 +1,5 @@
 from models.yolov3_gpu_head_v2.constants import PathConstants
 from keras.models import load_model
-from utils.non_max_suppression import classic_non_max_suppression
 import time
 import keras.backend as K
 import tensorflow as tf

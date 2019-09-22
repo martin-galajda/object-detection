@@ -1,6 +1,6 @@
 from models.yolov3.inference import infer_objects_in_image, restore_model
 from models.yolov3.conversion.utils import load_classes
-from utils.preprocess_image import resize_and_letter_box
+from models.preprocessing.letterbox import resize_and_letter_box
 import numpy as np
 from models.data.base_object_detector import BaseObjectDetector
 

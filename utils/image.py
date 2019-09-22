@@ -1,21 +1,19 @@
 import numpy as np
 from PIL import Image
-import cv2
 
 
 def load_pil_image_from_file(file_path: str) -> (Image, np.array):
+    """
+    Loads image specified by 'file_path' as a RGB PIL image.
+
+    Args:
+      - file_path: path to the image to be loaded
+
+    Returns:
+      Tuple consting of PIL Image instance nad numpy array containing pixels in row-major order.
+    """
     img = Image.open(file_path)
     img.load()
     rgb_image = img.convert('RGB')
 
     return rgb_image, np.asarray(rgb_image, dtype="int32")
-
-
-def load_image_from_file(file_path: str):
-    img = cv2.imread(file_path)
-    return img
-
-
-def resize_pil_image(img: Image, *, width: int, height:  int) -> (Image, np.array):
-    resized_img = img.resize((width, height))
-    return resized_img, np.asarray(resized_img, dtype="int32")

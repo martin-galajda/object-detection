@@ -22,7 +22,7 @@ __pycache__/
 db/
 tsv_files/
 
-play/
+play/**
 venv/
 tf-model
 small_openimages

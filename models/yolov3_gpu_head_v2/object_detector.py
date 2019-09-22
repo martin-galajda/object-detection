@@ -1,13 +1,12 @@
 from models.yolov3_gpu_head_v2.inference import infer_objects_in_image, restore_model, _construct_out_tensors
 from models.yolov3_gpu_head_v2.conversion.utils import load_classes
-from utils.preprocess_image import resize_and_letter_box
+from models.preprocessing.letterbox import resize_and_letter_box
 from models.data.base_object_detector import BaseObjectDetector
 import numpy as np
 import keras.backend as K
 import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 import time
-
 
 
 NUM_OF_CLASSES = 601
