@@ -24,4 +24,13 @@ cd /storage/brno3-cerit/home/marneyko/object-detection &&
     module load cuda-9.0 python36-modules-gcc python-3.6.2-gcc &&
     source ./venv/bin/activate &&
     export LD_LIBRARY_PATH=./tmp-cudnn/usr/lib/x86_64-linux-gnu/:$LD_LIBRARY_PATH &&
-    python retrain.py --model=inceptionV3 --images_num=2000 --batch_size=32
+    python retrain.py \
+        --model=inceptionV3 \
+        --images_num=3000000 \
+        --batch_size=32 \
+        --workers=4 \
+        --optimizer=adam \
+        --unfreeze_top_k_layers=0 \
+        --continue_from_last_checkpoint=f \
+        --use_multitarget_learning=t \
+        --continue_training_allowed_different_config_keys=continue_training_allowed_different_config_keys,workers,epochs,db_images_path,db_image_labels_path,continue_from_last_checkpoint,optimizer_lr
