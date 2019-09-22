@@ -1,0 +1,20 @@
+{
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/*.js": true,
+    "**/*.js.map": true,
+  },
+  "editor.tabSize": 2,
+  "tslint.enable": true,
+  "tslint.autoFixOnSave": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "javascript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.autoImportSuggestions.enabled": true,
+  "typescript.preferences.quoteStyle": "single",
+  "tslint.configFile": "./tslint.json",
+  "tslint.run": "onSave",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "workbench.editor.showTabs": true,
+  "workbench.editor.enablePreview": false
+}
