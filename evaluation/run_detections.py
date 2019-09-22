@@ -1,5 +1,5 @@
 import argparse
-from models.yolov3_gpu_head_v2.object_detector import ObjectDetector as YOLOv3ObjectDetector
+from models.yolov3.object_detector import ObjectDetector as YOLOv3ObjectDetector
 from models.faster_rcnn_inception_resnet_v2_oid_v4.object_detector import ObjectDetector as FasterRCNNObjectDetector
 from evaluation.write_detections import write_detections
 

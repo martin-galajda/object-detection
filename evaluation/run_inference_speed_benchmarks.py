@@ -1,5 +1,5 @@
 from models.faster_rcnn_inception_resnet_v2_oid_v4.object_detector import ObjectDetector as FasterRCNNObjectDetector
-from models.yolov3_gpu_head_v2.object_detector import ObjectDetector as YOLOv3ObjectDetector
+from models.yolov3.object_detector import ObjectDetector as YOLOv3ObjectDetector
 from evaluation.speed_tester import SpeedTester
 
 faster_rcnn_detector = FasterRCNNObjectDetector(use_gpu=True, log_device_placement=False)
