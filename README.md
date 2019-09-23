@@ -36,13 +36,13 @@ Our repository is structured into multiple repositories:
 - `/models/utils` - utility functions used by object detection algorithms
 - `/models/preprocessing` - preprocessing used in the models
 - `/models/yolov3` - YOLOv3 inference pipeline:
-  - `cpu_head/` - with inference head in Numpy (on CPU)
-  - `gpu_head_v1` - with inference head in TF, but non-max suppression in Numpy
-  - `gpu_head_v2` - with inference head and non-max suppression in TF
-  - `conversion` - conversion from the Darknet framework to Keras model
-  - `resources` - resourcess needed by the model (e.g. weights, class labels)
+  - `/cpu_head/` - with inference head in Numpy (on CPU)
+  - `/gpu_head_v1` - with inference head in TF, but non-max suppression in Numpy
+  - `/gpu_head_v2` - with inference head and non-max suppression in TF
+  - `/conversion` - conversion from the [Darknet framework](https://github.com/pjreddie/darknet) to Keras
+  - `/resources` - resources needed by the model (e.g. weights, class labels)
 
-- `models/faster_rcnn_inception_resnet_v2_oid_v4`- Faster R-CNN inference pipeline
+- `/models/faster_rcnn_inception_resnet_v2_oid_v4`- Faster R-CNN inference pipeline
 - `/evaluation` - code for computing evaluation metrics for object detection models
 - `/evaluation/average_precision` - our custom implementation for computing (m)AP 
 - `/notebooks` - Jupyter notebooks which
