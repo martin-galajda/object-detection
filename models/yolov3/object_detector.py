@@ -1,4 +1,4 @@
-from models.yolov3.inference import infer_objects_in_image, restore_model, _construct_out_tensors
+from models.yolov3.inference import infer_objects_in_image, restore_model, _construct_inference_tensors
 from models.yolov3.conversion.utils import load_classes
 from models.preprocessing.letterbox import resize_and_letter_box
 from models.data.base_object_detector import BaseObjectDetector
@@ -62,7 +62,7 @@ class ObjectDetector(BaseObjectDetector):
         self.model_image_height = model_image_height
 
         self.anchors = anchors / np.array([model_image_width, model_image_height])
-        out_tensors, input_tensors = _construct_out_tensors(
+        out_tensors, input_tensors = _construct_inference_tensors(
             restored_model=self.model,
             num_of_anchors=3,
             anchors=self.anchors,
@@ -78,6 +78,16 @@ class ObjectDetector(BaseObjectDetector):
         self,
         image_np: np.array,
     ):
+        """
+        Infers object detection on the loaded numpy array 
+        representing pixels of the image (row-major order).
+
+        :param image_np np.array containing pixels of the image (row-major ordering)
+        :return (detected_boxes, detected_classes, detected_scores)
+           - detected_boxes array of (left, top, bottom, right)
+           - detected_classes array of ints representing class indices
+           - detected_scores array of floats representing probability for each box and class
+        """
         orig_img_height, orig_img_width = image_np.shape[:2]
         img_np = resize_and_letter_box(image_np / 255., target_width=self.model_image_width, target_height=self.model_image_height)
         img_np = np.expand_dims(img_np, 0)

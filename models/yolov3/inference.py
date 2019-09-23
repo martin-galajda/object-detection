@@ -16,6 +16,9 @@ def restore_model(path_to_model = PathConstants.YOLOV3_MODEL_OPENIMAGES_OUT_PATH
 
 
 def construct_grid(rows, cols):
+    """
+    Constructs grid structure that is used in YOLO architecture.
+    """
     grid_x = K.arange(0, stop=cols)
     grid_x = K.reshape(grid_x, [1, -1, 1, 1])
     grid_x = K.tile(grid_x, [rows, 1, 1, 1])
@@ -29,7 +32,7 @@ def construct_grid(rows, cols):
     return grid
 
 
-def _construct_out_tensors(
+def _construct_inference_tensors(
     *,
     restored_model,
     num_of_anchors,
@@ -39,6 +42,28 @@ def _construct_out_tensors(
     prob_detection_threshold = 0.25,
     nms_iou_threshold = 0.5
 ):
+    """
+    Constructs input tensors (placeholders) and output tensors that are used for inference.
+
+    :param restored_model Keras model restored from the Darknet
+    :param num_of_anchors number of anchors used in the architecture
+    :param anchors anchors used in the architecture (expected shape=(num_of_anchors, 2), first dimension is width)
+    :param model_image_width width of the image used by model (needs to be divisible by 32)
+    :param model_image_height height of the image used by model (needs to be divisible by 32)
+    :param model_image_height height of the image used by model (needs to be divisible by 32)
+    :param prob_detection_threshold threshold for detecting object
+    :param nms_iou_threshold threshold for non-max suppresion
+
+    :return (out_tensors, input_tensors)
+        - out_tensors - (picked_boxes, picked_classes, picked_scores)
+            - picked_boxes = Tensor of (left, top, bottom, right)
+            - picked_classes = Tensor of ints
+            - picked_score = Tensor of floats
+        - input_tensors = (model_input, orig_image_width, orig_image_height)
+            - orig_image_width - Placeholder for original image width (before resizing)
+            - orig_image_height - Placeholder for original image height (before resizing)
+            - model_input - Placeholder for image pixels
+    """
     start = time.time()
     boxes = []
     prob_class = []
@@ -145,6 +170,12 @@ def infer_objects_in_image(
 
 
 def get_corrected_boxes(*, box_width, box_height, box_x, box_y, orig_image_shape, model_image_shape):
+    """
+    Transforms detected bounding boxes to original sizes of the image.
+
+    We resize and letterbox image before feeding it into the model,
+    this corrects bounding box predictions to fit the original image dimensions.
+    """
     orig_image_w, orig_image_h = orig_image_shape[0], orig_image_shape[1]
     model_w, model_h = model_image_shape[0], model_image_shape[1]
 
