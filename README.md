@@ -1,6 +1,6 @@
 # What is it?
 
-This repository contains all the code for Diploma thesis in which we use object detection models on OpenImages dataset to solve problem of extracting  meaningful information from the image content present on the websites.
+This repository contains all the code for Diploma thesis in which we use object detection models on [Open Images Dataset](https://storage.googleapis.com/openimages/web/index.html) to tackle the problem of extracting useful information from the image content present on the web.
 
 # Initial setup
 In order to be able to run object detectors we need to download and generate resources needed by the inference pipelines. Moreover, to maintain reproducible environment, we recommend using virtualenv.
@@ -29,7 +29,7 @@ Follow the instructions [here](https://github.com/martinGalajdaSchool/object-det
 
 # Directory structure
 
-Our repository is structured into multiple repositories:
+Our repository is structured into multiple folders:
 
 - `/models` - code for object detection inference pipelines
 - `/models/data`  - data structures used by object detection algorithms
