@@ -74,10 +74,6 @@ class ObjectDetector(BaseObjectDetector):
         self.input_tensors = input_tensors
         self.verbose = verbose
 
-        resolver = tf.contrib.cluster_resolver.TPUClusterResolver('grpc://' + os.environ['COLAB_TPU_ADDR'])
-        tf.contrib.distribute.initialize_tpu_system(resolver)
-        self.strategy = tf.contrib.distribute.TPUStrategy(resolver)
-
     def infer_object_detections_on_loaded_image(
         self,
         image_np: np.array,
