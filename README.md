@@ -3,7 +3,20 @@
 This repository contains all the code for Diploma thesis in which we use object detection models on OpenImages dataset to solve problem of extracting  meaningful information from the image content present on the websites.
 
 # Initial setup
-In order to be able to run object detectors we need to download and generate resources needed by the inference pipelines.
+In order to be able to run object detectors we need to download and generate resources needed by the inference pipelines. Moreover, to maintain reproducible environment, we recommend using virtualenv.
+
+## Prerequisites
+
+1. [Python 3.6](https://www.python.org/downloads/)
+
+
+## Setuping virtual environment
+
+1. `pip install venv`  <-- if you don't have venv installed yet
+2. `python -m virtualenv venv` <-- creates virtual environment in the venv directory
+3. `source venv/bin/activate` <-- activates virtual environment
+4. `pip install -r requirements.txt` <-- installs packages into virtual environment
+5. `./set_python_path.sh` <-- IMPORTANT: We write all python code assuming `PYTHONPATH` is pointing to root directory
 
 ## Setuping Faster R-CNN
 
@@ -39,7 +52,7 @@ After initial setup of models, you can use object detectors in the way described
 from models.yolov3.object_detector import ObjectDetector as YOLOv3ObjectDetector
 
 yolov3_detector = YOLOv3ObjectDetector(
-    # Be verbose about times about inference
+    # Be verbose about times for inference
     verbose=True,
 
     # Enable logging of the device placement
