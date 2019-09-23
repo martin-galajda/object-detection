@@ -13,10 +13,10 @@ In order to be able to run object detectors we need to download and generate res
 ## Setuping virtual environment
 
 1. `pip install venv`  <-- if you don't have venv installed yet
-2. `python -m virtualenv venv` <-- creates virtual environment in the venv directory
-3. `source venv/bin/activate` <-- activates virtual environment
-4. `pip install -r requirements.txt` <-- installs packages into virtual environment
-5. `./set_python_path.sh` <-- IMPORTANT: We write all python code assuming `PYTHONPATH` is pointing to root directory
+2. `python -m virtualenv venv` <-- creates a virtual environment in the venv directory
+3. `source venv/bin/activate` <-- activates the virtual environment
+4. `pip install -r requirements.txt` <-- installs packages into the virtual environment
+5. `./set_python_path.sh` <-- IMPORTANT: We write all Python code assuming `PYTHONPATH` is pointing to the root directory
 
 ## Setuping Faster R-CNN
 
@@ -31,15 +31,25 @@ Follow the instructions [here](https://github.com/martinGalajdaSchool/object-det
 
 Our repository is structured into multiple repositories:
 
-- /models - code for object detection inference pipelines
-- /models/data  - data structures used by object detection algorithms
-- /models/utils - utility functions used by object detection algorithms
-- /evaluation - code for computing evaluation metrics for object detection models
-- /notebooks - Jupyter notebooks which
+- `/models` - code for object detection inference pipelines
+- `/models/data`  - data structures used by object detection algorithms
+- `/models/utils` - utility functions used by object detection algorithms
+- `/models/preprocessing` - preprocessing used in the models
+- `/models/yolov3` - YOLOv3 inference pipeline:
+  - `cpu_head/` - with inference head in Numpy (on CPU)
+  - `gpu_head_v1` - with inference head in TF, but non-max suppression in Numpy
+  - `gpu_head_v2` - with inference head and non-max suppression in TF
+  - `conversion` - conversion from the Darknet framework to Keras model
+  - `resources` - resourcess needed by the model (e.g. weights, class labels)
+
+- `models/faster_rcnn_inception_resnet_v2_oid_v4`- Faster R-CNN inference pipeline
+- `/evaluation` - code for computing evaluation metrics for object detection models
+- `/evaluation/average_precision` - our custom implementation for computing (m)AP 
+- `/notebooks` - Jupyter notebooks which
   - demonstrate how to use the object detectors
   - contain scripts used for computing metrics
-- /utils - common utility functions
-- /common - common stuff i.e. custom argparse types
+- `/utils` - common utility functions
+- `/common` - common stuff i.e. custom argparse types
 
 # Object detectors
 
