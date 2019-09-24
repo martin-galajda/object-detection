@@ -1,3 +1,5 @@
+#### MATPLOTLIBRC FORMAT
+
 xtick.labelsize: 16
 ytick.labelsize: 16
 font.size: 15
