@@ -1,9 +1,8 @@
 from models.yolov3.constants import PathConstants
-from keras.models import load_model
+from tensorflow.keras.models import load_model
 from utils.non_max_suppression import classic_non_max_suppression
 import time
-import keras.backend as K
-import keras
+import tensorflow.keras.backend as K
 import numpy as np
 import tensorflow as tf
 from typing import Tuple
@@ -110,7 +109,7 @@ def infer_objects_in_image(
     model_image_height: int,
     model_image_width: int,
     anchors: np.array,
-    restored_model: keras.Model,
+    restored_model: tf.keras.Model,
     num_of_anchors: int = NUM_OF_ANCHORS,
     num_of_classes=NUM_OF_CLASSES
 ):

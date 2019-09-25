@@ -2,9 +2,9 @@ from models.yolov3.gpu_head_v1.inference import infer_objects_in_image, restore_
 from models.yolov3.conversion.utils import load_classes
 from models.preprocessing.letterbox import resize_and_letter_box
 import numpy as np
-import keras.backend as K
+import tensorflow.keras.backend as K
 import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
+from tensorflow.keras.backend.tensorflow_backend import set_session
 from models.data.base_object_detector import BaseObjectDetector
 
 
