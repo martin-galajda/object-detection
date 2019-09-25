@@ -40,7 +40,8 @@ def _infer_network_outputs(
     orig_image_height,
     model_image_width,
     model_image_height,
-    img_np
+    img_np,
+    verbose
 ):
     start = time.time()
     boxes = []
@@ -86,15 +87,17 @@ def _infer_network_outputs(
         prob_class,
     ]
 
-    print(f'Took {time.time() - start} seconds to construct network.')
+    if verbose:
+        print(f'Took {time.time() - start} seconds to construct network.')
 
     start = time.time()
     sess_out = sess.run(out_tensors, feed_dict={
         restored_model.input: img_np,
         K.learning_phase(): 0
     })
-
-    print(f'Took {time.time() - start} seconds to infer outputs in session.')
+    
+    if verbose:
+        print(f'Took {time.time() - start} seconds to infer outputs in session.')
     boxes, out_boxes_classes = sess_out
     return boxes, out_boxes_classes
 

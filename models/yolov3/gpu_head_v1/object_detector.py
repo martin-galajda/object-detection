@@ -4,7 +4,7 @@ from models.preprocessing.letterbox import resize_and_letter_box
 import numpy as np
 import tensorflow.keras.backend as K
 import tensorflow as tf
-from keras.backend.tensorflow_backend import set_session
+from tensorflow.keras.backend.tensorflow_backend import set_session
 from models.data.base_object_detector import BaseObjectDetector
 
 
@@ -34,20 +34,21 @@ class ObjectDetector(BaseObjectDetector):
         path_to_model: str = None,
         path_to_classes: str = None,
         log_device_placement: bool = True,
-        gpu_allow_growth: bool = True
+        gpu_allow_growth: bool = True,
+        verbose: bool = True
     ):
 
-        # config = tf.ConfigProto()
+        config = tf.ConfigProto()
 
-        # # dynamically grow the memory used on the GPU
-        # config.gpu_options.allow_growth = gpu_allow_growth
+        # dynamically grow the memory used on the GPU
+        config.gpu_options.allow_growth = gpu_allow_growth
 
-        # # log device placement (on which device the operation ran)
-        # config.log_device_placement = log_device_placement
+        # log device placement (on which device the operation ran)
+        config.log_device_placement = log_device_placement
 
-        # # create and set this TensorFlow session as the default session for Keras
-        # sess = tf.Session(config=config)
-        # set_session(sess)
+        # create and set this TensorFlow session as the default session for Keras
+        sess = tf.Session(config=config)
+        set_session(sess)
 
         self.session = K.get_session()
 
@@ -60,6 +61,7 @@ class ObjectDetector(BaseObjectDetector):
         self.model_image_height = model_image_height
 
         self.anchors = anchors / np.array([model_image_width, model_image_height])
+        self.verbose = verbose
 
     def infer_object_detections_on_loaded_image(
         self,
@@ -78,7 +80,8 @@ class ObjectDetector(BaseObjectDetector):
             detection_prob_treshold=self.detection_threshold,
             model_image_height=self.model_image_height,
             model_image_width=self.model_image_width,
-            anchors=self.anchors
+            anchors=self.anchors,
+            verbose=self.verbose
         )
 
         return detected_boxes, detected_classes, detected_scores
