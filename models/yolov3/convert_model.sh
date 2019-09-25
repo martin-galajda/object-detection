@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-python ./models/yolov3/conversion/run.py
+python ./conversion/run.py

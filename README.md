@@ -1,9 +1,9 @@
 # What is it?
 
-This repository contains all the code for Diploma thesis in which we use object detection models on [Open Images Dataset](https://storage.googleapis.com/openimages/web/index.html) to tackle the problem of extracting useful information from the image content present on the web.
+This repository contains all the code for Diploma thesis in which we use object detection models trained on [Open Images Dataset](https://storage.googleapis.com/openimages/web/index.html) to tackle the problem of extracting useful information from the image content present on the web.
 
 # Initial setup
-In order to be able to run object detectors we need to download and generate resources needed by the inference pipelines. Moreover, to maintain reproducible environment, we recommend using virtualenv.
+In order to be able to run object detectors we need to download and generate resources needed by the inference pipelines. Moreover, to maintain a reproducible environment, we recommend using virtualenv.
 
 ## Prerequisites
 
@@ -12,10 +12,11 @@ In order to be able to run object detectors we need to download and generate res
 
 ## Setuping virtual environment
 
+From the root folder:
 1. `pip install venv`  <-- if you don't have venv installed yet
 2. `python -m virtualenv venv` <-- creates a virtual environment in the venv directory
 3. `source venv/bin/activate` <-- activates the virtual environment
-4. `pip install -r requirements.txt` <-- installs packages into the virtual environment
+4. `pip install -r requirements_local.txt` <-- installs packages into the virtual environment
 5. `./set_python_path.sh` <-- IMPORTANT: We write all Python code assuming `PYTHONPATH` is pointing to the root directory
 
 ## Setuping Faster R-CNN
@@ -50,6 +51,7 @@ Our repository is structured into multiple folders:
   - contain scripts used for computing metrics
 - `/utils` - common utility functions
 - `/common` - common stuff i.e. custom argparse types
+- `/scraper` - scraper related stuff used for collecting dataset of annotable URLs
 
 # Object detectors
 

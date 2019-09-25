@@ -45,6 +45,7 @@ def _construct_inference_tensors(
     """
     Constructs input tensors (placeholders) and output tensors that are used for inference.
 
+    Arguments:
     :param restored_model Keras model restored from the Darknet
     :param num_of_anchors number of anchors used in the architecture
     :param anchors anchors used in the architecture (expected shape=(num_of_anchors, 2), first dimension is width)
@@ -54,6 +55,7 @@ def _construct_inference_tensors(
     :param prob_detection_threshold threshold for detecting object
     :param nms_iou_threshold threshold for non-max suppresion
 
+    Returns:
     :return (out_tensors, input_tensors)
         - out_tensors - (picked_boxes, picked_classes, picked_scores)
             - picked_boxes = Tensor of (left, top, bottom, right)
