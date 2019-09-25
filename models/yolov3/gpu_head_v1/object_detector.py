@@ -4,7 +4,7 @@ from models.preprocessing.letterbox import resize_and_letter_box
 import numpy as np
 import tensorflow.keras.backend as K
 import tensorflow as tf
-from tensorflow.keras.backend.tensorflow_backend import set_session
+from keras.backend.tensorflow_backend import set_session
 from models.data.base_object_detector import BaseObjectDetector
 
 

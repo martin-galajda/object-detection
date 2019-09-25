@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Tuple
 
+
 NUM_OF_CLASSES = 601
 NUM_OF_BOX_PARAMS = 5
 NUM_OF_ANCHORS = 3
