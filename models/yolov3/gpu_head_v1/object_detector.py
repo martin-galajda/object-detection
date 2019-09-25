@@ -37,17 +37,17 @@ class ObjectDetector(BaseObjectDetector):
         gpu_allow_growth: bool = True
     ):
 
-        config = tf.ConfigProto()
+        # config = tf.ConfigProto()
 
-        # dynamically grow the memory used on the GPU
-        config.gpu_options.allow_growth = gpu_allow_growth
+        # # dynamically grow the memory used on the GPU
+        # config.gpu_options.allow_growth = gpu_allow_growth
 
-        # log device placement (on which device the operation ran)
-        config.log_device_placement = log_device_placement
+        # # log device placement (on which device the operation ran)
+        # config.log_device_placement = log_device_placement
 
-        # create and set this TensorFlow session as the default session for Keras
-        sess = tf.Session(config=config)
-        set_session(sess)
+        # # create and set this TensorFlow session as the default session for Keras
+        # sess = tf.Session(config=config)
+        # set_session(sess)
 
         self.session = K.get_session()
 
