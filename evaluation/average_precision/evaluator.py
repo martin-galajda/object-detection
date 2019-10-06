@@ -52,7 +52,7 @@ class Evaluator:
     ground_truth_bboxes: List[BoundingBox]
 
     def __init__(
-        self,
+        self, 
         *,
         detected_bounding_boxes: List[BoundingBox],
         ground_truth_bounding_boxes: List[BoundingBox],
@@ -92,6 +92,12 @@ class Evaluator:
 
         for class_idx in all_classes_indices:
             current_detected_bboxes = detected_bboxes_by_class[class_idx]
+
+            def has_gt_object_in_file(bbox: BoundingBox):
+                return len(gt_bboxes_by_filename[bbox.filename]) > 0
+
+            current_detected_bboxes = list(filter(has_gt_object_in_file, current_detected_bboxes))
+            
             current_gt_bboxes = gt_bboxes_by_class[class_idx]
 
             if len(current_gt_bboxes) == 0:
