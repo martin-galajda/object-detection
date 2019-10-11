@@ -37,7 +37,7 @@ class ObjectDetector(BaseObjectDetector):
         log_device_placement: bool = True,
         gpu_allow_growth: bool = True,
         verbose: bool = True,
-        interpolation_strategy: cv2.INTER_LINEAR
+        interpolation_strategy: any = cv2.INTER_LINEAR
     ):
 
         config = tf.ConfigProto()
