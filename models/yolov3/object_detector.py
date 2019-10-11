@@ -69,6 +69,8 @@ class ObjectDetector(BaseObjectDetector):
             anchors=self.anchors,
             model_image_width=model_image_width,
             model_image_height=model_image_height,
+            prob_detection_threshold = self.detection_threshold,
+            nms_iou_threshold = self.nms_threshold
         )
 
         self.out_tensors = out_tensors
