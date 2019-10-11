@@ -3,11 +3,11 @@ from models.yolov3.conversion.utils import load_classes
 from models.preprocessing.letterbox import resize_and_letter_box
 from models.data.base_object_detector import BaseObjectDetector
 import numpy as np
-import tensorflow.keras.backend as K
+import keras.backend as K
 import tensorflow as tf
-from tensorflow.keras.backend.tensorflow_backend import set_session
+from keras.backend.tensorflow_backend import set_session
 import time
-
+import cv2
 
 NUM_OF_CLASSES = 601
 NUM_OF_ANCHORS = 3
@@ -37,6 +37,7 @@ class ObjectDetector(BaseObjectDetector):
         log_device_placement: bool = True,
         gpu_allow_growth: bool = True,
         verbose: bool = True,
+        interpolation_strategy: cv2.INTER_LINEAR
     ):
 
         config = tf.ConfigProto()
@@ -73,6 +74,7 @@ class ObjectDetector(BaseObjectDetector):
         self.out_tensors = out_tensors
         self.input_tensors = input_tensors
         self.verbose = verbose
+        self.interpolation_strategy = interpolation_strategy
 
     def infer_object_detections_on_loaded_image(
         self,
@@ -89,7 +91,12 @@ class ObjectDetector(BaseObjectDetector):
            - detected_scores array of floats representing probability for each box and class
         """
         orig_img_height, orig_img_width = image_np.shape[:2]
-        img_np = resize_and_letter_box(image_np / 255., target_width=self.model_image_width, target_height=self.model_image_height)
+        img_np = resize_and_letter_box(
+            image_np / 255.,
+            target_width=self.model_image_width,
+            target_height=self.model_image_height,
+            interpolation=self.interpolation_strategy
+        )
         img_np = np.expand_dims(img_np, 0)
 
         start = time.time()

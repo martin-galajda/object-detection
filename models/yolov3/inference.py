@@ -1,7 +1,7 @@
 from models.yolov3.constants import PathConstants
-from tensorflow.keras.models import load_model
+from keras.models import load_model
 import time
-import tensorflow.keras.backend as K
+import keras.backend as K
 import tensorflow as tf
 import numpy as np
 
