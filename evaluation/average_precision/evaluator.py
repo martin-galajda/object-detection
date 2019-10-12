@@ -56,11 +56,13 @@ class Evaluator:
         *,
         detected_bounding_boxes: List[BoundingBox],
         ground_truth_bounding_boxes: List[BoundingBox],
-        iou_threshold: float = 0.5
+        iou_threshold: float = 0.5,
+        drop_empty_gt_files: bool = True
     ):
         self.detected_bboxes = detected_bounding_boxes
         self.ground_truth_bboxes = ground_truth_bounding_boxes
         self.iou_threshold = iou_threshold
+        self.drop_empty_gt_files = drop_empty_gt_files
 
     def evaluate(self) -> EvaluationResults:
         """
@@ -96,7 +98,8 @@ class Evaluator:
             def has_gt_object_in_file(bbox: BoundingBox):
                 return len(gt_bboxes_by_filename[bbox.filename]) > 0
 
-            current_detected_bboxes = list(filter(has_gt_object_in_file, current_detected_bboxes))
+            if self.drop_empty_gt_files:
+                current_detected_bboxes = list(filter(has_gt_object_in_file, current_detected_bboxes))
             
             current_gt_bboxes = gt_bboxes_by_class[class_idx]
 
