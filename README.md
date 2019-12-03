@@ -27,6 +27,10 @@ Follow the instructions [here](https://github.com/martinGalajdaSchool/object-det
 
 Follow the instructions [here](https://github.com/martinGalajdaSchool/object-detection/tree/master/models/yolov3/README.md).
 
+## Experiments
+
+Check out [notebooks folder](https://github.com/martinGalajdaSchool/object-detection/tree/master/notebooks) for experiments.
+
 
 # Directory structure
 
