@@ -1,4 +1,0 @@
-[flake8]
-ignore = E251, E221, E241
-max-line-length = 160
-exclude = venv/*,db,checkpoints,densenetpretrained,play
