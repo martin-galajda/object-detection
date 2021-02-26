@@ -1,5 +1,5 @@
 absl-py==0.6.1
-aiohttp==3.4.4
+aiohttp==3.7.4
 aiosqlite==0.8.0
 appdirs==1.4.3
 appnope==0.1.0
